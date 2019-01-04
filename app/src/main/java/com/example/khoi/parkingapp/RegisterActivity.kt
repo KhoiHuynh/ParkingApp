@@ -5,7 +5,9 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import com.example.khoi.parkingapp.bean.User
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_register.*
 
 class RegisterActivity : AppCompatActivity() {
@@ -17,7 +19,7 @@ class RegisterActivity : AppCompatActivity() {
         setContentView(R.layout.activity_register)
 
         // Initialize Firebase Auth
-                auth = FirebaseAuth.getInstance()
+        auth = FirebaseAuth.getInstance()
 
         btn_register.setOnClickListener {
             performRegister()
@@ -33,6 +35,7 @@ class RegisterActivity : AppCompatActivity() {
         val name = et_name.text.toString()
         val email = et_register_email.text.toString()
         val password = et_register_password.text.toString()
+
         Log.d(TAG, "Name: $name")
         Log.d(TAG, "Email: $email")
         Log.d(TAG, "Password: $password")
@@ -48,14 +51,33 @@ class RegisterActivity : AppCompatActivity() {
                     Log.d(TAG, "createUserWithEmail:success")
                     Log.d(TAG, "created user with uid: ${it.result?.user?.uid}")
                     Toast.makeText(this, "You account has been registered", Toast.LENGTH_SHORT).show()
+                    saveUserToDatabase()
 
+                    // after saving the user to the DB we switch to the MapsActivity
+                    val intent = Intent(this,MapsActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
                 } else {
                     // If sign in fails, display a message to the user.
-                    Log.w(TAG, "createUserWithEmail:failure", it.exception)
+                    Log.w(TAG, "createUserWithEmail: Failed", it.exception)
                     val errorMsg = it.exception?.message.toString()
                     Toast.makeText(baseContext, errorMsg, Toast.LENGTH_SHORT).show()
                     return@addOnCompleteListener
                 }
+            }
+    }
+
+    private fun saveUserToDatabase(){
+        val uid = FirebaseAuth.getInstance().uid.toString()
+        val ref = FirebaseDatabase.getInstance().getReference("/users/$uid")
+        var user = User(uid, et_name.text.toString(), et_register_email.text.toString())
+
+        ref.setValue(user)
+            .addOnSuccessListener {
+                Log.d(TAG, "Added user $uid to the Database success")
+            }
+            .addOnFailureListener{
+                Log.w(TAG, "saveUserToDatabase: Failed", it)
             }
     }
 }
