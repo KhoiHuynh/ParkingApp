@@ -3,6 +3,10 @@ package com.example.khoi.parkingapp
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import com.google.android.gms.common.api.Status
+import com.google.android.gms.location.places.Place
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment
+import com.google.android.gms.location.places.ui.PlaceSelectionListener
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -11,9 +15,11 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
+
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
+    private val TAG = "MapsActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +29,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         Log.d("MapsActivity", "in the maps")
+
+        getAutoCompleteSearchResults()
     }
+
+private fun getAutoCompleteSearchResults(){
+    val autocompleteFragment =
+        fragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
+
+    autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+        override fun onPlaceSelected(place: Place) {
+            // TODO: Get info about the selected place.
+            Log.i(TAG, "Place: " + place.name)
+        }
+
+        override fun onError(status: Status) {
+            // TODO: Handle the error.
+            Log.i(TAG, "An error occurred: $status")
+        }
+    })
+}
+
+
+
+
+
+
+
+
+
 
     /**
      * Manipulates the map once available.
