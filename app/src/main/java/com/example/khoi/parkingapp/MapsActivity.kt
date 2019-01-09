@@ -13,6 +13,10 @@ import com.google.android.gms.maps.*
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import android.content.res.Resources
+import com.google.android.gms.maps.model.MapStyleOptions
+
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -121,6 +125,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            val success = googleMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    this, R.raw.style_json
+                )
+            )
+
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.")
+            }
+        } catch (e: Resources.NotFoundException) {
+            Log.e(TAG, "Can't find style. Error: ", e)
+        }
 
         // Add a marker in Sydney and move the camera
         val sydney = LatLng(-34.0, 151.0)
