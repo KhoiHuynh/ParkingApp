@@ -26,35 +26,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        Log.d("MapsActivity", "in the maps")
 
         val bottomNavigation: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
-        val fragmentManager= this@MapsActivity.supportFragmentManager
-        val fragments = fragmentManager.fragments
-        Log.d(TAG, "This is our fragments: " + fragments.toString())
-
         getAutoCompleteSearchResults()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val fragmentManager= this@MapsActivity.supportFragmentManager
-        val fragments = fragmentManager.fragments
-        Log.d(TAG, "onStart: This is our fragments: " + fragments.toString())
-    }
-
-    private fun replaceFragment(fragment: Fragment){
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-
-        fragmentTransaction.replace(R.id.fragmentContainer, fragment)
-        fragmentTransaction.commit()
     }
 
     private fun getAutoCompleteSearchResults(){
         val autocompleteFragment =
-            supportFragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
+            fragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
 // TODO fix deprecated fragmentManager getter
         autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
@@ -63,64 +44,71 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
 
             override fun onError(status: Status) {
-                // TODO: Handle the error.
                 Log.i(TAG, "An error occurred: $status")
             }
         })
     }
 
+    private fun showAndHideFragment(itemId: Int){
+        val fragmentManager = this@MapsActivity.supportFragmentManager
+        val addLocationFragment: Fragment? = fragmentManager.findFragmentByTag("addLocationFragment")
+        val settingsFragment   : Fragment? = fragmentManager.findFragmentByTag("settingsFragment")
+
+        Log.d(TAG, "# of Fragments: ${fragmentManager.fragments.size}")
+        if(itemId == R.id.nav_map){
+            if(settingsFragment != null && settingsFragment.isVisible){
+                fragmentManager.beginTransaction().hide(settingsFragment).commit()
+            }
+            if(addLocationFragment != null && addLocationFragment.isVisible){
+                fragmentManager.beginTransaction().hide(addLocationFragment).commit()
+            }
+        }
+
+        if(itemId == R.id.nav_add_location){
+            if(addLocationFragment == null){
+                fragmentManager.beginTransaction().add(R.id.fragmentContainer, AddLocationFragment(),"addLocationFragment").commit()
+            }else{
+                fragmentManager.beginTransaction().show(addLocationFragment).commit()
+            }
+            if(settingsFragment != null && settingsFragment.isVisible){
+                fragmentManager.beginTransaction().hide(settingsFragment).commit()
+            }
+        }
+        if(itemId == R.id.nav_settings){
+            if(settingsFragment == null){
+                fragmentManager.beginTransaction().add(R.id.fragmentContainer, SettingsFragment(),"settingsFragment").commit()
+            }else{
+                fragmentManager.beginTransaction().show(settingsFragment).commit()
+            }
+            if(addLocationFragment != null && addLocationFragment.isVisible){
+                fragmentManager.beginTransaction().hide(addLocationFragment).commit()
+            }
+        }
+    }
+
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener {item->
+        val fragmentManager= this@MapsActivity.supportFragmentManager
+        val fragments = fragmentManager.fragments
+
         when(item.itemId){
             R.id.nav_map -> {
                 Log.d(TAG, "map pressed")
-                // if there's a fragment, close it
-                val visibleFrag = getVisibleFragment()
-                if(visibleFrag != null){
-                    detachFragment(visibleFrag)
-                }
+                showAndHideFragment(R.id.nav_map)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.nav_add_location -> {
                 Log.d(TAG, "add location pressed")
-                replaceFragment(AddLocationFragment())
+                showAndHideFragment(R.id.nav_add_location)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.nav_settings -> {
                 Log.d(TAG, "settings pressed")
-                replaceFragment(SettingsFragment())
+                showAndHideFragment(R.id.nav_settings)
                 return@OnNavigationItemSelectedListener true
             }
         }
         false
     }
-
-
-    private fun getVisibleFragment(): Fragment? {
-        val fragmentManager= this@MapsActivity.supportFragmentManager
-        val fragments = fragmentManager.fragments
-        if (fragments != null) {
-            for (fragment in fragments!!) {
-                if (fragment != null && fragment!!.isVisible)
-                    Log.d(TAG, "found a visible fragment: ")
-                    return fragment
-            }
-        }
-        Log.d(TAG, "No visible fragment: " + fragments.isEmpty())
-        return null
-    }
-
-    private fun detachFragment(fragment: Fragment){
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
-
-        fragmentTransaction.remove(fragment)
-        fragmentTransaction.commit()
-    }
-
-
-
-
-
-
 
     /**
      * Manipulates the map once available.
