@@ -1,5 +1,6 @@
 package com.example.khoi.parkingapp
 
+import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
@@ -10,18 +11,28 @@ import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.maps.*
-
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import android.content.res.Resources
+import android.location.Location
+import android.support.v4.app.ActivityCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.Marker
+import java.lang.Error
 
 
-
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
-
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     private lateinit var mMap: GoogleMap
-    private val TAG = "MapsActivity"
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var lastLocation: Location
+
+    companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
+        private const val TAG = "MapsActivity"
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,23 +45,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val bottomNavigation: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
+        // Blue dot for current location on map
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         getAutoCompleteSearchResults()
     }
 
-    private fun getAutoCompleteSearchResults(){
-        val autocompleteFragment =
-            fragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
-// TODO fix deprecated fragmentManager getter
-        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-            override fun onPlaceSelected(place: Place) {
-                // TODO: Get info about the selected place.
-                Log.i(TAG, "Place: " + place.name)
-            }
+    private fun getAutoCompleteSearchResults() {
+        val fragmentManager = this@MapsActivity.supportFragmentManager
+        try {
+            if (fragmentManager != null) {
+                val autocompleteFragment =
+                    fragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
+                autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+                    override fun onPlaceSelected(place: Place) {
+                        // TODO: Get info about the selected place.
+                        Log.i(MapsActivity.TAG, "Place: " + place.name)
+                    }
 
-            override fun onError(status: Status) {
-                Log.i(TAG, "An error occurred: $status")
+                    override fun onError(status: Status) {
+                        Log.i(MapsActivity.TAG, "An error occurred: $status")
+                    }
+                })
             }
-        })
+        }catch (e: Exception){
+            Log.d(MapsActivity.TAG, e.toString(), Throwable())
+        }
     }
 
     private fun showAndHideFragment(itemId: Int){
@@ -58,7 +78,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val addLocationFragment: Fragment? = fragmentManager.findFragmentByTag("addLocationFragment")
         val settingsFragment   : Fragment? = fragmentManager.findFragmentByTag("settingsFragment")
 
-        Log.d(TAG, "# of Fragments: ${fragmentManager.fragments.size}")
+        Log.d(MapsActivity.TAG, "# of Fragments: ${fragmentManager.fragments.size}")
         if(itemId == R.id.nav_map){
             if(settingsFragment != null && settingsFragment.isVisible){
                 fragmentManager.beginTransaction().hide(settingsFragment).commit()
@@ -91,22 +111,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener {item->
-        val fragmentManager= this@MapsActivity.supportFragmentManager
-        val fragments = fragmentManager.fragments
-
         when(item.itemId){
             R.id.nav_map -> {
-                Log.d(TAG, "map pressed")
+                Log.d(MapsActivity.TAG, "map pressed")
                 showAndHideFragment(R.id.nav_map)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.nav_add_location -> {
-                Log.d(TAG, "add location pressed")
+                Log.d(MapsActivity.TAG, "add location pressed")
                 showAndHideFragment(R.id.nav_add_location)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.nav_settings -> {
-                Log.d(TAG, "settings pressed")
+                Log.d(MapsActivity.TAG, "settings pressed")
                 showAndHideFragment(R.id.nav_settings)
                 return@OnNavigationItemSelectedListener true
             }
@@ -125,10 +142,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
+        setUpMap()
         try {
-            // Customise the styling of the base map using a JSON object defined
-            // in a raw resource file.
             val success = googleMap.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(
                     this, R.raw.style_json
@@ -136,15 +151,41 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             )
 
             if (!success) {
-                Log.e(TAG, "Style parsing failed.")
+                Log.e(MapsActivity.TAG, "Style parsing failed.")
             }
         } catch (e: Resources.NotFoundException) {
-            Log.e(TAG, "Can't find style. Error: ", e)
+            Log.e(MapsActivity.TAG, "Can't find style. Error: ", e)
         }
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        // location stuff
+        mMap.uiSettings.isZoomControlsEnabled = true
+        mMap.setOnMarkerClickListener(this)
+        mMap.uiSettings.isMapToolbarEnabled = false
+
+
+    }
+
+    override fun onMarkerClick(p0: Marker?) = false
+
+    private fun setUpMap() {
+        if (ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+            return
+        }
+
+        mMap.isMyLocationEnabled = true
+        fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
+            // Got last known location. In some rare situations this can be null.
+            if (location != null) {
+                lastLocation = location
+                val currentLatLng = LatLng(location.latitude, location.longitude)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+            }else{
+                Log.d(MapsActivity.TAG, "Last Location is Null")
+            }
+        }
+
     }
 }
