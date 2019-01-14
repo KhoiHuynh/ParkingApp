@@ -12,7 +12,6 @@ import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import android.content.res.Resources
 import android.location.Location
 import android.support.v4.app.ActivityCompat
@@ -20,13 +19,14 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
-import java.lang.Error
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
+    private lateinit var searchedLocation: LatLng
+
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
@@ -45,31 +45,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val bottomNavigation: BottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
-        // Blue dot for current location on map
+        // The main entry point for interacting with the fused location provider.
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         getAutoCompleteSearchResults()
     }
 
     private fun getAutoCompleteSearchResults() {
-        val fragmentManager = this@MapsActivity.supportFragmentManager
-        try {
-            if (fragmentManager != null) {
-                val autocompleteFragment =
-                    fragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
-                autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-                    override fun onPlaceSelected(place: Place) {
-                        // TODO: Get info about the selected place.
-                        Log.i(MapsActivity.TAG, "Place: " + place.name)
-                    }
+        if (fragmentManager != null) {
+            val autocompleteFragment =
+                fragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
+            autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+                override fun onPlaceSelected(place: Place) {
+                    // TODO: Get info about the selected place.
+                    Log.i(MapsActivity.TAG, "Place: " + place.name)
+                    searchedLocation = LatLng(place.latLng.latitude,place.latLng.longitude)
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(searchedLocation, 12f))
+                }
 
-                    override fun onError(status: Status) {
-                        Log.i(MapsActivity.TAG, "An error occurred: $status")
-                    }
-                })
-            }
-        }catch (e: Exception){
-            Log.d(MapsActivity.TAG, e.toString(), Throwable())
+                override fun onError(status: Status) {
+                    Log.i(MapsActivity.TAG, "An error occurred: $status")
+                }
+            })
         }
     }
 
@@ -87,7 +84,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 fragmentManager.beginTransaction().hide(addLocationFragment).commit()
             }
         }
-
         if(itemId == R.id.nav_add_location){
             if(addLocationFragment == null){
                 fragmentManager.beginTransaction().add(R.id.fragmentContainer, AddLocationFragment(),"addLocationFragment").commit()
@@ -131,18 +127,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         false
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        setUpMap()
+        checkPermission()
         try {
             val success = googleMap.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(
@@ -167,14 +154,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     override fun onMarkerClick(p0: Marker?) = false
 
-    private fun setUpMap() {
+    private fun checkPermission() {
         if (ActivityCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
             return
         }
+        setUpMap()
+    }
 
+    private fun setUpMap(){
         mMap.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
             // Got last known location. In some rare situations this can be null.
@@ -186,6 +176,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 Log.d(MapsActivity.TAG, "Last Location is Null")
             }
         }
-
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the location-related task you need to do.
+                    Log.d(MapsActivity.TAG, "Location permission granted")
+                    setUpMap()
+                }
+                return
+            }
+
+            // Add other 'when' lines to check for other
+            // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
+        }
+    }
+
+
 }
