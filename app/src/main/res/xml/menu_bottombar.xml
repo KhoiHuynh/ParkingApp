@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tabs>
+    <tab
+        icon="@drawable/ic_baseline_map_24px"
+        id="@+id/bb_menu_map"
+        title="Map"
+        />
+    <tab
+        icon="@drawable/ic_baseline_add_location_24px"
+        id="@+id/bb_menu_host"
+        title="Host"
+        />
+    <tab
+        icon="@drawable/ic_baseline_settings_20px"
+        id="@+id/bb_menu_profile"
+        title="Profile"
+        />
+</tabs>

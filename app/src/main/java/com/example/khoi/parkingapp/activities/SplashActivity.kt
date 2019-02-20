@@ -1,4 +1,4 @@
-package com.example.khoi.parkingapp
+package com.example.khoi.parkingapp.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -26,7 +26,7 @@ class SplashActivity : AppCompatActivity() {
             finish()
         }
         else{
-            val intent = Intent(this, MapsActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()
         }

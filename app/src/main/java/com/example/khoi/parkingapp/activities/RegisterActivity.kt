@@ -1,10 +1,11 @@
-package com.example.khoi.parkingapp
+package com.example.khoi.parkingapp.activities
 
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import com.example.khoi.parkingapp.R
 import com.example.khoi.parkingapp.bean.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -26,7 +27,7 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         tv_already_have_account.setOnClickListener {
-            val intent = Intent(this,LoginActivity::class.java)
+            val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
     }
@@ -53,8 +54,8 @@ class RegisterActivity : AppCompatActivity() {
                     Toast.makeText(this, "You account has been registered", Toast.LENGTH_SHORT).show()
                     saveUserToDatabase()
 
-                    // after saving the user to the DB we switch to the MapsActivity
-                    val intent = Intent(this,MapsActivity::class.java)
+                    // after saving the user to the DB we switch to the MainActivity
+                    val intent = Intent(this, MainActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK.or(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(intent)
                 } else {
