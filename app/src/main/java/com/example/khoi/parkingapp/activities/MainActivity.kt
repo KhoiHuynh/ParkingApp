@@ -57,20 +57,27 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         supportActionBar?.setDisplayHomeAsUpEnabled(fragNavController.isRootFragment.not())
     }
 
+    @SuppressLint("RestrictedApi")
     override fun onTabTransaction(fragment: Fragment?, index: Int) {
         // If we have a backstack, show the back button
         if(fragment is MapFragment){
             supportActionBar?.setDisplayHomeAsUpEnabled(false)
+            supportActionBar?.setShowHideAnimationEnabled(false)
+
             supportActionBar?.hide()
         }
         if(fragment is AddLocationFragment){
             supportActionBar?.title = "Host"
             supportActionBar?.setDisplayHomeAsUpEnabled(fragNavController.isRootFragment.not())
+            supportActionBar?.setShowHideAnimationEnabled(false)
+
             supportActionBar?.show()
         }
         if(fragment is SettingsFragment){
             supportActionBar?.title = "Profile"
             supportActionBar?.setDisplayHomeAsUpEnabled(fragNavController.isRootFragment.not())
+            supportActionBar?.setShowHideAnimationEnabled(false)
+
             supportActionBar?.show()
         }
     }

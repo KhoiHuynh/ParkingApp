@@ -32,6 +32,7 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var searchedLocation: LatLng
+    private lateinit var  autocompleteFragment: PlaceAutocompleteFragment
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
@@ -67,7 +68,8 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
     private fun getAutoCompleteSearchResults() {
         if (activity?.fragmentManager != null) {
-            val autocompleteFragment =
+            println("callllled")
+            autocompleteFragment =
                 activity?.fragmentManager?.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
             autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
                 override fun onPlaceSelected(place: Place) {
