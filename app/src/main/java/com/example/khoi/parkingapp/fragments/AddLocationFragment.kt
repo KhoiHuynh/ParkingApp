@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.SeekBar
 import android.widget.TimePicker
 import com.example.khoi.parkingapp.R
@@ -19,14 +20,23 @@ import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
 import kotlinx.android.synthetic.main.fragment_add_location.*
+import kotlinx.android.synthetic.main.fragment_add_location.view.*
 import java.util.*
 
-class AddLocationFragment : BaseFragment() {
+class AddLocationFragment : BaseFragment(){
     private var mTimeSetListenerFrom: TimePickerDialog.OnTimeSetListener? = null
     private var mTimeSetListenerTo: TimePickerDialog.OnTimeSetListener? = null
     private var mSeekBar: SeekBar? = null
+    private val date = intArrayOf(0,0,0,0,0,0,0)
     companion object {
         private const val TAG = "AddLocationFragment"
+        private const val monday = 0
+        private const val tuesday = 1
+        private const val wednesday = 2
+        private const val thursday = 3
+        private const val friday = 4
+        private const val saturday = 5
+        private const val sunday = 6
         fun newInstance(instance: Int): AddLocationFragment {
             val args = Bundle()
             args.putInt(BaseFragment.ARGS_INSTANCE, instance)
@@ -62,7 +72,67 @@ class AddLocationFragment : BaseFragment() {
             }
         })
 
+
         return view
+    }
+
+    fun onCheckboxClicked(view: View){
+        if(view is CheckBox){
+            val checked: Boolean = view.isChecked
+
+            when(view.id){
+                R.id.checkbox_monday -> {
+                    if (checked) {
+                        date[monday] = 1
+                    }else{
+                        date[monday] = 0
+                    }
+                }
+                R.id.checkbox_tuesday -> {
+                    if (checked) {
+                        date[tuesday] = 1
+                    }else{
+                        date[tuesday] = 0
+                    }
+                }
+                R.id.checkbox_wednesday -> {
+                    if (checked) {
+                        date[wednesday] = 1
+                    }else{
+                        date[wednesday] = 0
+                    }
+                }
+                R.id.checkbox_thursday -> {
+                    if (checked) {
+                        date[thursday] = 1
+                    }else{
+                        date[thursday] = 0
+                    }
+                }
+                R.id.checkbox_friday -> {
+                    if (checked) {
+                        date[friday] = 1
+                    }else{
+                        date[friday] = 0
+                    }
+                }
+                R.id.checkbox_saturday -> {
+                    if (checked) {
+                        date[saturday] = 1
+                    }else{
+                        date[saturday] = 0
+                    }
+                }
+                R.id.checkbox_sunday -> {
+                    if (checked) {
+                        date[sunday] = 1
+                    }else{
+                        date[sunday] = 0
+                    }
+                }
+            }
+            println(Arrays.toString(date))
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -85,6 +155,7 @@ class AddLocationFragment : BaseFragment() {
                 tv_rate.text = text
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {

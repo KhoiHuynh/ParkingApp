@@ -11,7 +11,6 @@ open class BaseFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        println("HERE ARE MY ARGUMENTS: $arguments")
         val args = arguments
         if (args != null) {
             mInt = args.getInt(ARGS_INSTANCE)

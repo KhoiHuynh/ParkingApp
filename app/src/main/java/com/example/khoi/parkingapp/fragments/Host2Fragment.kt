@@ -27,8 +27,8 @@ class Host2Fragment : BaseFragment(){
     ): View? {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_host2, container, false)
-        val button_host2 = view.findViewById(R.id.button_host2) as Button
-        button_host2.setOnClickListener{
+        val button = view.findViewById(R.id.button_host2) as Button
+        button.setOnClickListener{
             Log.d(TAG, "Clicked")
         }
         return view

@@ -2,8 +2,8 @@
     <string name="app_name">ParkingApp</string>
     <string name="title_activity_maps">My App</string>
     <string name="bLogin">Login</string>
-    <string name="password">Password</string>
     <string name="email">Email</string>
+    <string name="password">Password</string>
     <string name="sign_up">Sign Up</string>
     <string name="already_have_an_account">Already have an Account?</string>
     <string name="name">Name</string>
@@ -18,7 +18,7 @@
     <string name="choose_your_hourly_rate">Choose you hourly rate</string>
     <string name="what_days_are_available_for_rent">What days are available for rent</string>
     <string name="to">Till</string>
-    <string name="_0">0$/h</string>
+    <string name="_0">0.00$/h</string>
     <string name="monday">Monday</string>
     <string name="tuesday">Tuesday</string>
     <string name="wednesday">Wednesday</string>
@@ -26,8 +26,6 @@
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
     <string name="sunday">Sunday</string>
-    <string name="password">Password</string>
-    <string name="email">Email</string>
     <string name="don_t_have_an_account_yet">Don\'t have an account yet?</string>
     <string name="login">Login</string>
     <string name="next">Next</string>

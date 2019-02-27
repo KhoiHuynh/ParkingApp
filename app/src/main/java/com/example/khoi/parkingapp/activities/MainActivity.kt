@@ -7,6 +7,7 @@ import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import com.example.khoi.parkingapp.R
 import com.example.khoi.parkingapp.fragments.*
 import com.example.khoi.parkingapp.fragments.MapFragment
@@ -112,7 +113,6 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         supportActionBar?.setShowHideAnimationEnabled(false)
-
         bottomBar = findViewById(R.id.bottom_navigation)
         fragNavController.apply {
             transactionListener = this@MainActivity
@@ -155,5 +155,10 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         super.onSaveInstanceState(outState)
         fragNavController.onSaveInstanceState(outState!!)
 
+    }
+
+    private val addLocationFragment = AddLocationFragment()
+    fun onCheckboxClicked(view: View){
+        addLocationFragment.onCheckboxClicked(view)
     }
 }
