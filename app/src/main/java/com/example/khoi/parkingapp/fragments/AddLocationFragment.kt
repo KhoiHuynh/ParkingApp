@@ -4,30 +4,37 @@ import android.app.TimePickerDialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.CheckBox
 import android.widget.SeekBar
 import android.widget.TimePicker
 import com.example.khoi.parkingapp.R
+import com.example.khoi.parkingapp.bean.SharedViewModel
+import com.example.khoi.parkingapp.bean.Spot
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
 import kotlinx.android.synthetic.main.fragment_add_location.*
-import kotlinx.android.synthetic.main.fragment_add_location.view.*
+import android.arch.lifecycle.ViewModelProviders
+import android.widget.Toast
+import java.math.BigDecimal
 import java.util.*
 
+var spotObj = Spot()
 class AddLocationFragment : BaseFragment(){
+    private var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = null
     private var mTimeSetListenerFrom: TimePickerDialog.OnTimeSetListener? = null
     private var mTimeSetListenerTo: TimePickerDialog.OnTimeSetListener? = null
     private var mSeekBar: SeekBar? = null
-    private val date = intArrayOf(0,0,0,0,0,0,0)
+    private lateinit var model: SharedViewModel
+
+//    private var days = intArrayOf(0,0,0,0,0,0,0)
+
     companion object {
         private const val TAG = "AddLocationFragment"
         private const val monday = 0
@@ -53,96 +60,68 @@ class AddLocationFragment : BaseFragment(){
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_add_location, container, false)
         val fm: FragmentManager = childFragmentManager
-        var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = fm.findFragmentByTag("placeAutocompleteFragment") as SupportPlaceAutocompleteFragment?
+        placeAutocompleteFragment = fm.findFragmentByTag("placeAutocompleteFragment") as SupportPlaceAutocompleteFragment?
 
         if (placeAutocompleteFragment == null){
             placeAutocompleteFragment = SupportPlaceAutocompleteFragment()
-            fm.beginTransaction().add(R.id.address_layout, placeAutocompleteFragment, "placeAutocompleteFragment").commit()
+            fm.beginTransaction().add(R.id.address_layout, placeAutocompleteFragment!!, "placeAutocompleteFragment").commit()
 //            placeAutocompleteFragment.setHint("Hello")
             fm.executePendingTransactions()
         }
+        return view
+    }
 
-        placeAutocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        model = activity?.run {
+            ViewModelProviders.of(this).get(SharedViewModel::class.java)
+        } ?: throw Exception("Invalid Activity")
+
+        getAutoCompleteSearchResults()
+        setFromAndToTime()
+        setSeekBar()
+        val default = intArrayOf(0,0,0,0,0,0,0)
+        button_next.setOnClickListener{
+            if(spotObj.getAddress().isNullOrEmpty()){
+                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getDates() == null || Arrays.equals(spotObj.getDates(), default)){
+                Toast.makeText(activity, "Please select at least one available day", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getTimeFrom().isNullOrEmpty()){
+                Toast.makeText(activity, "Please select an available from time", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getTimeTo().isNullOrEmpty()){
+                Toast.makeText(activity, "Please select an available till time", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getRate() == null || spotObj.getRate() == BigDecimal(0)){
+                Toast.makeText(activity, "Please select a rate larger than 0$", Toast.LENGTH_LONG).show()
+            }
+            else{
+                //            spotObj.setDates(intArrayOf(1,1,1,1,1,1,1))
+//            spotObj.setDates(days)
+                spotObj.printMe()
+//            println("my days array: " + Arrays.toString(days) )
+//            println("is the days here?" + Arrays.toString(spotObj.getDates()))
+                model.spot.postValue(spotObj)
+                mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
+            }
+
+
+        }
+    }
+
+    private fun getAutoCompleteSearchResults(){
+        placeAutocompleteFragment!!.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
                 // TODO: Get info about the selected place.
                 Log.i(AddLocationFragment.TAG, "Place: " + place.name)
+                spotObj.setAddress(place.name.toString())
             }
             override fun onError(status: Status) {
                 Log.i(AddLocationFragment.TAG, "An error occurred: $status")
             }
         })
-
-
-        return view
-    }
-
-    fun onCheckboxClicked(view: View){
-        if(view is CheckBox){
-            val checked: Boolean = view.isChecked
-
-            when(view.id){
-                R.id.checkbox_monday -> {
-                    if (checked) {
-                        date[monday] = 1
-                    }else{
-                        date[monday] = 0
-                    }
-                }
-                R.id.checkbox_tuesday -> {
-                    if (checked) {
-                        date[tuesday] = 1
-                    }else{
-                        date[tuesday] = 0
-                    }
-                }
-                R.id.checkbox_wednesday -> {
-                    if (checked) {
-                        date[wednesday] = 1
-                    }else{
-                        date[wednesday] = 0
-                    }
-                }
-                R.id.checkbox_thursday -> {
-                    if (checked) {
-                        date[thursday] = 1
-                    }else{
-                        date[thursday] = 0
-                    }
-                }
-                R.id.checkbox_friday -> {
-                    if (checked) {
-                        date[friday] = 1
-                    }else{
-                        date[friday] = 0
-                    }
-                }
-                R.id.checkbox_saturday -> {
-                    if (checked) {
-                        date[saturday] = 1
-                    }else{
-                        date[saturday] = 0
-                    }
-                }
-                R.id.checkbox_sunday -> {
-                    if (checked) {
-                        date[sunday] = 1
-                    }else{
-                        date[sunday] = 0
-                    }
-                }
-            }
-            println(Arrays.toString(date))
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setFromAndToTime()
-        setSeekBar()
-        button_next.setOnClickListener{
-            Log.d(TAG, "Clicked")
-            mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
-        }
     }
 
     private fun setSeekBar(){
@@ -154,12 +133,11 @@ class AddLocationFragment : BaseFragment(){
                 val text = value.toString() + "0 $/h"
                 tv_rate.text = text
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                val progressFloat: Float = seekBar.progress.toFloat()
+                val value = (progressFloat / 10.00).toFloat()
+                spotObj.setRate(value.toBigDecimal())
             }
         })
     }
@@ -215,6 +193,7 @@ class AddLocationFragment : BaseFragment(){
             val time : String
             time = "$displayHour:$displayMinutes $amPM"
             tv_from_time.text = time
+            spotObj.setTimeFrom(time)
         }
         mTimeSetListenerTo = TimePickerDialog.OnTimeSetListener { _: TimePicker, hours: Int, minutes: Int ->
             var displayHour: Int
@@ -238,6 +217,72 @@ class AddLocationFragment : BaseFragment(){
             val time : String
             time = "$displayHour:$displayMinutes $amPM"
             tv_to_time.text = time
+            spotObj.setTimeTo(time)
+
         }
     }
+    private var arr: IntArray = intArrayOf(0,0,0,0,0,0,0)
+    fun onCheckboxClicked(view: View){
+        if(view is CheckBox){
+            val checked: Boolean = view.isChecked
+            when(view.id){
+                R.id.checkbox_monday -> {
+                    if (checked) {
+                        arr[monday] = 1
+                    }else{
+                        arr[monday] = 0
+                    }
+                }
+                R.id.checkbox_tuesday -> {
+                    if (checked) {
+                        arr[tuesday] = 1
+                    }else{
+                        arr[tuesday] = 0
+                    }
+                }
+                R.id.checkbox_wednesday -> {
+                    if (checked) {
+                        arr[wednesday] = 1
+                    }else{
+                        arr[wednesday] = 0
+                    }
+                }
+                R.id.checkbox_thursday -> {
+                    if (checked) {
+                        arr[thursday] = 1
+                    }else{
+                        arr[thursday] = 0
+                    }
+                }
+                R.id.checkbox_friday -> {
+                    if (checked) {
+                        arr[friday] = 1
+                    }else{
+                        arr[friday] = 0
+                    }
+                }
+                R.id.checkbox_saturday -> {
+                    if (checked) {
+                        arr[saturday] = 1
+                    }else{
+                        arr[saturday] = 0
+                    }
+                }
+                R.id.checkbox_sunday -> {
+                    if (checked) {
+                        arr[sunday] = 1
+                    }else{
+                        arr[sunday] = 0
+                    }
+                }
+            }
+
+//            days = arr.clone()
+//            println("clicked: " + Arrays.toString(days))
+            spotObj.setDates(arr)
+//            println("HELLO PARTH THIS IS THE SPOT OBJECT: " + Arrays.toString(spotObj.getDates()))
+
+        }
+    }
+
 }
