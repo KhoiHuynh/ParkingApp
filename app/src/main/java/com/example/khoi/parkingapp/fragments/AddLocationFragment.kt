@@ -22,6 +22,7 @@ import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragmen
 import kotlinx.android.synthetic.main.fragment_add_location.*
 import android.arch.lifecycle.ViewModelProviders
 import android.widget.Toast
+import com.google.android.gms.maps.model.LatLng
 import java.math.BigDecimal
 import java.util.*
 
@@ -32,6 +33,7 @@ class AddLocationFragment : BaseFragment(){
     private var mTimeSetListenerTo: TimePickerDialog.OnTimeSetListener? = null
     private var mSeekBar: SeekBar? = null
     private lateinit var model: SharedViewModel
+    private lateinit var searchedLocation: LatLng
 
 //    private var days = intArrayOf(0,0,0,0,0,0,0)
 
@@ -82,22 +84,22 @@ class AddLocationFragment : BaseFragment(){
         setSeekBar()
         val default = intArrayOf(0,0,0,0,0,0,0)
         button_next.setOnClickListener{
-            if(spotObj.getAddress().isNullOrEmpty()){
-                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
-            }
-            else if(spotObj.getDates() == null || Arrays.equals(spotObj.getDates(), default)){
-                Toast.makeText(activity, "Please select at least one available day", Toast.LENGTH_LONG).show()
-            }
-            else if(spotObj.getTimeFrom().isNullOrEmpty()){
-                Toast.makeText(activity, "Please select an available from time", Toast.LENGTH_LONG).show()
-            }
-            else if(spotObj.getTimeTo().isNullOrEmpty()){
-                Toast.makeText(activity, "Please select an available till time", Toast.LENGTH_LONG).show()
-            }
-            else if(spotObj.getRate() == null || spotObj.getRate() == BigDecimal(0)){
-                Toast.makeText(activity, "Please select a rate larger than 0$", Toast.LENGTH_LONG).show()
-            }
-            else{
+//            if(spotObj.getAddress().isNullOrEmpty()){
+//                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getDates() == null || Arrays.equals(spotObj.getDates(), default)){
+//                Toast.makeText(activity, "Please select at least one available day", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getTimeFrom().isNullOrEmpty()){
+//                Toast.makeText(activity, "Please select an available from time", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getTimeTo().isNullOrEmpty()){
+//                Toast.makeText(activity, "Please select an available till time", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getRate() == null || spotObj.getRate() == BigDecimal(0)){
+//                Toast.makeText(activity, "Please select a rate larger than 0$", Toast.LENGTH_LONG).show()
+//            }
+//            else{
                 //            spotObj.setDates(intArrayOf(1,1,1,1,1,1,1))
 //            spotObj.setDates(days)
                 spotObj.printMe()
@@ -105,7 +107,7 @@ class AddLocationFragment : BaseFragment(){
 //            println("is the days here?" + Arrays.toString(spotObj.getDates()))
                 model.spot.postValue(spotObj)
                 mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
-            }
+//            }
 
 
         }
@@ -116,7 +118,8 @@ class AddLocationFragment : BaseFragment(){
             override fun onPlaceSelected(place: Place) {
                 // TODO: Get info about the selected place.
                 Log.i(AddLocationFragment.TAG, "Place: " + place.name)
-                spotObj.setAddress(place.name.toString())
+//                searchedLocation = LatLng(place.latLng.latitude,place.latLng.longitude)
+                spotObj.setAddress(place)
             }
             override fun onError(status: Status) {
                 Log.i(AddLocationFragment.TAG, "An error occurred: $status")

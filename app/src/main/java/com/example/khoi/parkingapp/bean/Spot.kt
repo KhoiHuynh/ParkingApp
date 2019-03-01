@@ -1,9 +1,10 @@
 package com.example.khoi.parkingapp.bean
 
+import com.google.android.gms.location.places.Place
 import java.math.BigDecimal
 import java.util.*
 class Spot{
-    private var address: String? = null
+    private var address: Place? = null
     private var dates : IntArray? = null
     private var timeFrom: String? = null
     private var timeTo: String? = null
@@ -11,7 +12,7 @@ class Spot{
     private var description: String? = null
 
     //getters
-    fun getAddress() : String? {return address}
+    fun getAddress() : Place? {return address}
     fun getDates() : IntArray? {return this.dates}
     fun getTimeFrom() : String? {return timeFrom}
     fun getTimeTo() : String? {return timeTo}
@@ -20,7 +21,7 @@ class Spot{
 
 
     //setters
-    fun setAddress(address: String){this.address = address}
+    fun setAddress(address: Place?){this.address = address}
     fun setDates(dates: IntArray){
         println("incoming setter param: " + Arrays.toString(dates))
         this.dates = dates

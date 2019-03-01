@@ -1,14 +1,18 @@
 package com.example.khoi.parkingapp.activities
 
 import android.annotation.SuppressLint
+import android.app.Dialog
+import android.arch.lifecycle.ViewModelProviders
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentManager
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import com.example.khoi.parkingapp.R
+import com.example.khoi.parkingapp.bean.SharedViewModel
 import com.example.khoi.parkingapp.fragments.*
 import com.example.khoi.parkingapp.fragments.MapFragment
 import com.ncapdevi.fragnav.FragNavController
@@ -18,8 +22,25 @@ import com.ncapdevi.fragnav.FragNavTransactionOptions
 import com.ncapdevi.fragnav.tabhistory.UniqueTabHistoryStrategy
 
 class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragNavController.TransactionListener, FragNavController.RootFragmentListener {
+    override fun switchTab(i: Int) {
+        fragNavController.switchTab(i)
+    }
+
+    override fun clearStack() {
+        fragNavController.clearStack()
+    }
+
+    override fun popFragments(i: Int) {
+        fragNavController.popFragments(i)
+    }
+
+    override fun replaceFragment(fragment: Fragment) {
+        fragNavController.replaceFragment(fragment)
+    }
+
     private val fragNavController: FragNavController = FragNavController(supportFragmentManager, R.id.container)
     lateinit var bottomBar: BottomNavigationView
+    private lateinit var model: SharedViewModel
     companion object {
         private const val TAG = "MainActivity"
         const val INDEX_MAP = FragNavController.TAB1
@@ -34,9 +55,6 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
     override val numberOfRootFragments: Int = 3
 
     override fun getRootFragment(index: Int): Fragment {
-        println("HERE IS MY INDEX: $index")
-        println("HERE IS MY INDEX_MAP: $INDEX_MAP")
-
         when (index) {
             INDEX_MAP -> return MapFragment.newInstance(0)
             INDEX_HOST -> return AddLocationFragment.newInstance(0)
@@ -94,10 +112,23 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         when (item.itemId) {
             R.id.nav_map -> {
                 fragNavController.switchTab(INDEX_MAP)
+                if(MapFragment().isVisible){
+                    println("i see you")
+                }else{
+                    println("i see nothing")
+                }
                 return@OnNavigationItemSelectedListener true
             }
             R.id.nav_add_location -> {
+                println("i see: "+fragNavController.currentFrag)
+                if(fragNavController.currentFrag!!.isVisible){
+                println("i see you")
+            }else{
+                println("i see nothing")
+            }
                 fragNavController.switchTab(INDEX_HOST)
+                println("i see after: "+fragNavController.currentFrag)
+
                 return@OnNavigationItemSelectedListener true
             }
             R.id.nav_settings -> {
@@ -112,6 +143,11 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        model = this.run {
+            ViewModelProviders.of(this).get(SharedViewModel::class.java)
+        }
+
         supportActionBar?.setShowHideAnimationEnabled(false)
         bottomBar = findViewById(R.id.bottom_navigation)
         fragNavController.apply {
@@ -149,12 +185,18 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         if (fragNavController.popFragment().not()) {
             super.onBackPressed()
         }
+        println("ccurent frag: " + fragNavController.currentFrag)
+        if (fragNavController.currentFrag is AddLocationFragment){
+            println("True")
+            spotObj.setDates(intArrayOf(0,0,0,0,0,0,0))
+            spotObj.setAddress(null)
+            model.spot.postValue(null)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         fragNavController.onSaveInstanceState(outState!!)
-
     }
 
     private val addLocationFragment = AddLocationFragment()

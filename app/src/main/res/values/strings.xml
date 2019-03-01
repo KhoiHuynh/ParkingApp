@@ -29,6 +29,11 @@
     <string name="don_t_have_an_account_yet">Don\'t have an account yet?</string>
     <string name="login">Login</string>
     <string name="next">Next</string>
+    <string name="checkmark">checkmark</string>
+    <string name="success">Success!</string>
+    <string name="thank_you_for_using_parkingapp_your_spot_has_been_added_succesfully">Thank you for using ParkingApp. Your spot has been added succesfully</string>
+    <string name="ok">Ok</string>
+    <string name="register">Register</string>
 
     <!-- Strings related to login -->
 </resources>
