@@ -11,7 +11,6 @@ open class BaseFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        println("HERE ARE MY ARGUMENTS: $arguments")
         val args = arguments
         if (args != null) {
             mInt = args.getInt(ARGS_INSTANCE)
@@ -27,7 +26,12 @@ open class BaseFragment : Fragment() {
 
     interface FragmentNavigation {
         fun pushFragment(fragment: Fragment)
+        fun replaceFragment(fragment: Fragment)
+        fun popFragments(i: Int)
+        fun clearStack()
+        fun switchTab(i: Int)
     }
+
 
     companion object {
         const val ARGS_INSTANCE = "com.ncapdevi.sample.argsInstance"

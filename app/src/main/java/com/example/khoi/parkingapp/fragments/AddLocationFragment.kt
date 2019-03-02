@@ -4,29 +4,42 @@ import android.app.TimePickerDialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.SeekBar
-import android.widget.TimePicker
 import com.example.khoi.parkingapp.R
+import com.example.khoi.parkingapp.bean.SharedViewModel
+import com.example.khoi.parkingapp.bean.Spot
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
+import android.arch.lifecycle.ViewModelProviders
+import android.os.Handler
+import android.support.v7.widget.AppCompatImageButton
+import android.widget.*
 import kotlinx.android.synthetic.main.fragment_add_location.*
 import java.util.*
 
-class AddLocationFragment : BaseFragment() {
+var spotObj = Spot()
+class AddLocationFragment : BaseFragment(){
+    private var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = null
     private var mTimeSetListenerFrom: TimePickerDialog.OnTimeSetListener? = null
     private var mTimeSetListenerTo: TimePickerDialog.OnTimeSetListener? = null
-    private var mSeekBar: SeekBar? = null
+    private lateinit var model: SharedViewModel
+    private var tempPlace: Place? = null
+
     companion object {
-        private const val TAG = "AddLocationFragment"
+        private val TAG = AddLocationFragment::class.qualifiedName
+        private const val monday = 0
+        private const val tuesday = 1
+        private const val wednesday = 2
+        private const val thursday = 3
+        private const val friday = 4
+        private const val saturday = 5
+        private const val sunday = 6
         fun newInstance(instance: Int): AddLocationFragment {
             val args = Bundle()
             args.putInt(BaseFragment.ARGS_INSTANCE, instance)
@@ -43,35 +56,81 @@ class AddLocationFragment : BaseFragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_add_location, container, false)
         val fm: FragmentManager = childFragmentManager
-        var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = fm.findFragmentByTag("placeAutocompleteFragment") as SupportPlaceAutocompleteFragment?
-
+        placeAutocompleteFragment = fm.findFragmentByTag("placeAutocompleteFragment") as SupportPlaceAutocompleteFragment?
         if (placeAutocompleteFragment == null){
             placeAutocompleteFragment = SupportPlaceAutocompleteFragment()
-            fm.beginTransaction().add(R.id.address_layout, placeAutocompleteFragment, "placeAutocompleteFragment").commit()
+            fm.beginTransaction().add(R.id.address_layout, placeAutocompleteFragment!!, "placeAutocompleteFragment").commit()
 //            placeAutocompleteFragment.setHint("Hello")
             fm.executePendingTransactions()
         }
-
-        placeAutocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-            override fun onPlaceSelected(place: Place) {
-                // TODO: Get info about the selected place.
-                Log.i(AddLocationFragment.TAG, "Place: " + place.name)
-            }
-            override fun onError(status: Status) {
-                Log.i(AddLocationFragment.TAG, "An error occurred: $status")
-            }
-        })
 
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        model = activity?.run {
+            ViewModelProviders.of(this).get(SharedViewModel::class.java)
+        } ?: throw Exception("Invalid Activity")
+
+        getAutoCompleteSearchResults()
         setFromAndToTime()
         setSeekBar()
+        Handler().postDelayed({
+            clearButton()
+        }, 100)
         button_next.setOnClickListener{
-            Log.d(TAG, "Clicked")
-            mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
+//            if(spotObj.getAddress().isNullOrEmpty()){
+//                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getDates() == null || Arrays.equals(spotObj.getDates(), default)){
+//                Toast.makeText(activity, "Please select at least one available day", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getTimeFrom().isNullOrEmpty()){
+//                Toast.makeText(activity, "Please select an available from time", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getTimeTo().isNullOrEmpty()){
+//                Toast.makeText(activity, "Please select an available till time", Toast.LENGTH_LONG).show()
+//            }
+//            else if(spotObj.getRate() == null || spotObj.getRate() == BigDecimal(0)){
+//                Toast.makeText(activity, "Please select a rate larger than 0$", Toast.LENGTH_LONG).show()
+//            }
+//            else{
+                //            spotObj.setDates(intArrayOf(1,1,1,1,1,1,1))
+//            spotObj.setDates(days)
+
+            spotObj.setAddress(tempPlace)
+            spotObj.printMe()
+//            Log.d(TAG, "tempPlace: " + tempPlace.toString())
+//            println("my days array: " + Arrays.toString(days) )
+//            println("is the days here?" + Arrays.toString(spotObj.getDates()))
+                model.spot.postValue(spotObj)
+                mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
+//            }
+
+
+        }
+    }
+
+    private fun getAutoCompleteSearchResults(){
+        placeAutocompleteFragment!!.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+                override fun onPlaceSelected(place: Place) {
+                // TODO: Get info about the selected place.
+                Log.i(AddLocationFragment.TAG, "Place: " + place.name)
+                tempPlace = place
+            }
+            override fun onError(status: Status) {
+                Log.i(AddLocationFragment.TAG, "An error occurred: $status")
+            }
+        })
+    }
+
+    private fun clearButton() {
+        placeAutocompleteFragment?.view?.findViewById<View>(R.id.place_autocomplete_clear_button)?.setOnClickListener {
+            Log.d(TAG, "Cleared Button Clicked")
+            placeAutocompleteFragment?.setText("")
+            it.visibility = View.GONE
+            tempPlace = null
         }
     }
 
@@ -84,11 +143,11 @@ class AddLocationFragment : BaseFragment() {
                 val text = value.toString() + "0 $/h"
                 tv_rate.text = text
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                val progressFloat: Float = seekBar.progress.toFloat()
+                val value = (progressFloat / 10.00).toFloat()
+                spotObj.setRate(value.toBigDecimal())
             }
         })
     }
@@ -144,6 +203,7 @@ class AddLocationFragment : BaseFragment() {
             val time : String
             time = "$displayHour:$displayMinutes $amPM"
             tv_from_time.text = time
+            spotObj.setTimeFrom(time)
         }
         mTimeSetListenerTo = TimePickerDialog.OnTimeSetListener { _: TimePicker, hours: Int, minutes: Int ->
             var displayHour: Int
@@ -167,6 +227,72 @@ class AddLocationFragment : BaseFragment() {
             val time : String
             time = "$displayHour:$displayMinutes $amPM"
             tv_to_time.text = time
+            spotObj.setTimeTo(time)
+
         }
     }
+    private var arr: IntArray = intArrayOf(0,0,0,0,0,0,0)
+    fun onCheckboxClicked(view: View){
+        if(view is CheckBox){
+            val checked: Boolean = view.isChecked
+            when(view.id){
+                R.id.checkbox_monday -> {
+                    if (checked) {
+                        arr[monday] = 1
+                    }else{
+                        arr[monday] = 0
+                    }
+                }
+                R.id.checkbox_tuesday -> {
+                    if (checked) {
+                        arr[tuesday] = 1
+                    }else{
+                        arr[tuesday] = 0
+                    }
+                }
+                R.id.checkbox_wednesday -> {
+                    if (checked) {
+                        arr[wednesday] = 1
+                    }else{
+                        arr[wednesday] = 0
+                    }
+                }
+                R.id.checkbox_thursday -> {
+                    if (checked) {
+                        arr[thursday] = 1
+                    }else{
+                        arr[thursday] = 0
+                    }
+                }
+                R.id.checkbox_friday -> {
+                    if (checked) {
+                        arr[friday] = 1
+                    }else{
+                        arr[friday] = 0
+                    }
+                }
+                R.id.checkbox_saturday -> {
+                    if (checked) {
+                        arr[saturday] = 1
+                    }else{
+                        arr[saturday] = 0
+                    }
+                }
+                R.id.checkbox_sunday -> {
+                    if (checked) {
+                        arr[sunday] = 1
+                    }else{
+                        arr[sunday] = 0
+                    }
+                }
+            }
+
+//            days = arr.clone()
+//            println("clicked: " + Arrays.toString(days))
+            spotObj.setDates(arr)
+//            println("HELLO PARTH THIS IS THE SPOT OBJECT: " + Arrays.toString(spotObj.getDates()))
+
+        }
+    }
+
 }

@@ -2,6 +2,8 @@ package com.example.khoi.parkingapp.fragments
 
 
 import android.annotation.SuppressLint
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
@@ -12,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.khoi.parkingapp.R
+import com.example.khoi.parkingapp.bean.SharedViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Place
@@ -28,7 +31,8 @@ import com.google.android.gms.common.api.Status
 
 
 class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
-    private lateinit var mMap: GoogleMap
+    lateinit var mMap: GoogleMap
+    private lateinit var model: SharedViewModel
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var searchedLocation: LatLng
@@ -46,10 +50,18 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         }
     }
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        model = activity?.run {
+            ViewModelProviders.of(this).get(SharedViewModel::class.java)
+        } ?: throw Exception("Invalid Activity")
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        println("zzz")
         val view = inflater.inflate(R.layout.fragment_map, container, false)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getAutoCompleteSearchResults()
@@ -68,7 +80,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
     private fun getAutoCompleteSearchResults() {
         if (activity?.fragmentManager != null) {
-            println("callllled")
             autocompleteFragment =
                 activity?.fragmentManager?.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
             autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
@@ -96,11 +107,11 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             )
             return
         }
-        setUpMap()
+        setUpMap(null)
     }
 
     @SuppressLint("MissingPermission")
-    private fun setUpMap(){
+    fun setUpMap(newLocation: LatLng?){
         mMap.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
             // Got last known location. In some rare situations this can be null.
@@ -111,6 +122,15 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             }else{
                 Log.d(TAG, "Last Location is Null")
             }
+
+            if (newLocation != null){
+                lastLocation = location
+                val currentLatLng = LatLng(newLocation.latitude, newLocation.longitude)
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+            }else{
+            Log.d(TAG, "New Location is Null")
+            }
+
         }
     }
 
@@ -130,6 +150,12 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         } catch (e: Resources.NotFoundException) {
             Log.e(TAG, "Can't find style. Error: ", e)
         }
+        
+        model.spotLatLng.observe(this, Observer { latLng ->
+            latLng?.let{
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12f))
+            }
+        })
 
         // location stuff
         mMap.uiSettings.isZoomControlsEnabled = true
@@ -147,7 +173,7 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the location-related task you need to do.
                     Log.d(TAG, "Location permission granted")
-                    setUpMap()
+                    setUpMap(null)
                 }
                 return
             }
@@ -159,4 +185,5 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             }
         }
     }
+
 }
