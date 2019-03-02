@@ -64,17 +64,19 @@ class Host2Fragment : BaseFragment(){
 //                println("host2" + it.getTimeTo())
             }
         })
-
+        val description = edit_text_description.text.toString()
         val button = view.findViewById(R.id.button_register) as Button
         button.setOnClickListener{
             Log.d(TAG, "Clicked")
+            println("description: " + description)
             val dialog = SuccessDialog()
             dialog.show(fragmentManager, "success dialog")
-
+            spotObj.setDescription(description)
             mFragmentNavigation.clearStack()
             bottomBar.selectedItemId = R.id.nav_map
             mFragmentNavigation.switchTab(0)
             model.spotLatLng.postValue(searchedLocation)
+            model.spot.postValue(spotObj)
 
 //            val mapFragment = MapFragment()
 //            mapFragment.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(searchedLocation, 12f))
