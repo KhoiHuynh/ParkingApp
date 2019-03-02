@@ -1,9 +1,13 @@
 package com.example.khoi.parkingapp.bean
 
+import android.util.Log
 import com.google.android.gms.location.places.Place
 import java.math.BigDecimal
 import java.util.*
 class Spot{
+    companion object {
+        private val TAG = Spot::class.simpleName
+    }
     private var address: Place? = null
     private var dates : IntArray? = null
     private var timeFrom: String? = null
@@ -34,11 +38,11 @@ class Spot{
 
 
     fun printMe(){
-        println("This is address: $address " +
-                "\nThis is dates: ${Arrays.toString(getDates())}" +
-                "\nThis is timeFrom: $timeFrom" +
-                "\nThis is timeTo: $timeTo" +
-                "\nThis is rate: $rate" +
-                "\nThis is description: $description")
+        Log.d(TAG,("\nThis is address: $address " +
+                "\nThis is dates: ${Arrays.toString(getDates())}"))
+//                "\nThis is timeFrom: $timeFrom" +
+//                "\nThis is timeTo: $timeTo" +
+//                "\nThis is rate: $rate" +
+//                "\nThis is description: $description")
     }
 }

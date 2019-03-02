@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
                 }
             }
             defaultTransactionOptions = FragNavTransactionOptions.newBuilder().build()
-            fragmentHideStrategy = FragNavController.DETACH_ON_NAVIGATE_HIDE_ON_SWITCH
+            fragmentHideStrategy = FragNavController.HIDE
             navigationStrategy = UniqueTabHistoryStrategy(object : FragNavSwitchController {
                 override fun switchTab(index: Int, transactionOptions: FragNavTransactionOptions?) {
                     if(index == INDEX_MAP){

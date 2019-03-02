@@ -9,9 +9,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.SeekBar
-import android.widget.TimePicker
 import com.example.khoi.parkingapp.R
 import com.example.khoi.parkingapp.bean.SharedViewModel
 import com.example.khoi.parkingapp.bean.Spot
@@ -19,11 +16,11 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
-import kotlinx.android.synthetic.main.fragment_add_location.*
 import android.arch.lifecycle.ViewModelProviders
-import android.widget.Toast
-import com.google.android.gms.maps.model.LatLng
-import java.math.BigDecimal
+import android.os.Handler
+import android.support.v7.widget.AppCompatImageButton
+import android.widget.*
+import kotlinx.android.synthetic.main.fragment_add_location.*
 import java.util.*
 
 var spotObj = Spot()
@@ -31,14 +28,11 @@ class AddLocationFragment : BaseFragment(){
     private var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = null
     private var mTimeSetListenerFrom: TimePickerDialog.OnTimeSetListener? = null
     private var mTimeSetListenerTo: TimePickerDialog.OnTimeSetListener? = null
-    private var mSeekBar: SeekBar? = null
     private lateinit var model: SharedViewModel
-    private lateinit var searchedLocation: LatLng
-
-//    private var days = intArrayOf(0,0,0,0,0,0,0)
+    private var tempPlace: Place? = null
 
     companion object {
-        private const val TAG = "AddLocationFragment"
+        private val TAG = AddLocationFragment::class.qualifiedName
         private const val monday = 0
         private const val tuesday = 1
         private const val wednesday = 2
@@ -63,13 +57,13 @@ class AddLocationFragment : BaseFragment(){
         val view = inflater.inflate(R.layout.fragment_add_location, container, false)
         val fm: FragmentManager = childFragmentManager
         placeAutocompleteFragment = fm.findFragmentByTag("placeAutocompleteFragment") as SupportPlaceAutocompleteFragment?
-
         if (placeAutocompleteFragment == null){
             placeAutocompleteFragment = SupportPlaceAutocompleteFragment()
             fm.beginTransaction().add(R.id.address_layout, placeAutocompleteFragment!!, "placeAutocompleteFragment").commit()
 //            placeAutocompleteFragment.setHint("Hello")
             fm.executePendingTransactions()
         }
+
         return view
     }
 
@@ -82,7 +76,9 @@ class AddLocationFragment : BaseFragment(){
         getAutoCompleteSearchResults()
         setFromAndToTime()
         setSeekBar()
-        val default = intArrayOf(0,0,0,0,0,0,0)
+        Handler().postDelayed({
+            clearButton()
+        }, 100)
         button_next.setOnClickListener{
 //            if(spotObj.getAddress().isNullOrEmpty()){
 //                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
@@ -102,7 +98,10 @@ class AddLocationFragment : BaseFragment(){
 //            else{
                 //            spotObj.setDates(intArrayOf(1,1,1,1,1,1,1))
 //            spotObj.setDates(days)
-                spotObj.printMe()
+
+            spotObj.setAddress(tempPlace)
+            spotObj.printMe()
+//            Log.d(TAG, "tempPlace: " + tempPlace.toString())
 //            println("my days array: " + Arrays.toString(days) )
 //            println("is the days here?" + Arrays.toString(spotObj.getDates()))
                 model.spot.postValue(spotObj)
@@ -115,16 +114,24 @@ class AddLocationFragment : BaseFragment(){
 
     private fun getAutoCompleteSearchResults(){
         placeAutocompleteFragment!!.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-            override fun onPlaceSelected(place: Place) {
+                override fun onPlaceSelected(place: Place) {
                 // TODO: Get info about the selected place.
                 Log.i(AddLocationFragment.TAG, "Place: " + place.name)
-//                searchedLocation = LatLng(place.latLng.latitude,place.latLng.longitude)
-                spotObj.setAddress(place)
+                tempPlace = place
             }
             override fun onError(status: Status) {
                 Log.i(AddLocationFragment.TAG, "An error occurred: $status")
             }
         })
+    }
+
+    private fun clearButton() {
+        placeAutocompleteFragment?.view?.findViewById<View>(R.id.place_autocomplete_clear_button)?.setOnClickListener {
+            Log.d(TAG, "Cleared Button Clicked")
+            placeAutocompleteFragment?.setText("")
+            it.visibility = View.GONE
+            tempPlace = null
+        }
     }
 
     private fun setSeekBar(){

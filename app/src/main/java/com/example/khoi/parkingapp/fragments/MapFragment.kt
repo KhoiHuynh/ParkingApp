@@ -151,11 +151,11 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             Log.e(TAG, "Can't find style. Error: ", e)
         }
         
-//        model.spotLatLng.observe(this, Observer { it ->
-//            it?.let{
-//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12f))
-//            }
-//        })
+        model.spotLatLng.observe(this, Observer { latLng ->
+            latLng?.let{
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12f))
+            }
+        })
 
         // location stuff
         mMap.uiSettings.isZoomControlsEnabled = true
