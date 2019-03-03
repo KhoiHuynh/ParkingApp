@@ -75,24 +75,15 @@ class Host2Fragment : BaseFragment(){
             }
         })
         val button = view.findViewById(R.id.button_register) as Button
-        val dialog = SuccessDialog()
-
         button.setOnClickListener{
             Log.d(TAG, "Clicked")
             val description = edit_text_description.text.toString()
 
             println("description: " + description)
-            dialog.show(fragmentManager, "success dialog")
             spotObj.setDescription(description)
             Log.d(TAG, "spotObj description" + spotObj.getDescription())
             saveUserToDatabase()
-            mFragmentNavigation.clearStack()
-            mFragmentNavigation.switchTab(0)
-            bottomBar.selectedItemId = R.id.nav_map
 
-            model.spotLatLng.postValue(searchedLocation)
-            model.spot.postValue(spotObj)
-            spotObj.printMe()
 
 //            Log.d(TAG, "Full Spot Object: \n" + spotObj.printMe())
 
@@ -111,26 +102,34 @@ class Host2Fragment : BaseFragment(){
 
         query.addListenerForSingleValueEvent(object: ValueEventListener{
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if(dataSnapshot.exists()){
+                if(dataSnapshot.exists()){ //if the spot already exists, we don't add it to the DB
                     Log.d(TAG, "Spot already exists")
-                    Toast.makeText(mContext, "This spot already exists", Toast.LENGTH_SHORT).show()
-                    for (issue:DataSnapshot in dataSnapshot.children) {
-                        println("id value: " + issue.child("place/id").value)
-                    }
-
+                    Toast.makeText(mContext, "This address already exists", Toast.LENGTH_SHORT).show()
+//                    for (issue:DataSnapshot in dataSnapshot.children) {
+//                        println("id value: " + issue.child("place/id").value)
+//                    }
                 }
-                else{
+                else{ //we add it if the spot doesn't exist
                     val uid = FirebaseAuth.getInstance().uid.toString()
                     val key = FirebaseDatabase.getInstance().getReference("spots").push().key
                     val ref = FirebaseDatabase.getInstance().getReference("/spots/$key")
+                    val dialog = SuccessDialog()
 
                     spotObj.setUid(uid)
                     ref.setValue(spotObj)
                         .addOnSuccessListener {
                             Log.d(TAG, "Added spot $key to the Database success")
+                            dialog.show(fragmentManager, "success dialog")
+                            mFragmentNavigation.clearStack()
+                            mFragmentNavigation.switchTab(0) //switched to mapFragment tab
+                            bottomBar.selectedItemId = R.id.nav_map
+
+                            model.spotLatLng.postValue(searchedLocation)
+                            model.spot.postValue(spotObj)
+                            spotObj.printMe()
                         }
                         .addOnFailureListener{
-                            Log.w(TAG, "saveUserToDatabase: Failed", it)
+                            Log.w(TAG, "saveSpotToDatabase: Failed", it)
                         }
                 }
             }

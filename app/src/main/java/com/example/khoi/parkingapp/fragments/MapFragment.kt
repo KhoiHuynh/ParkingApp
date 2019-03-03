@@ -28,6 +28,11 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.common.api.Status
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 
 class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -37,6 +42,7 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private lateinit var lastLocation: Location
     private lateinit var searchedLocation: LatLng
     private lateinit var  autocompleteFragment: PlaceAutocompleteFragment
+    private lateinit var database: FirebaseDatabase
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
@@ -61,8 +67,9 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        println("zzz")
         val view = inflater.inflate(R.layout.fragment_map, container, false)
+        database = FirebaseDatabase.getInstance()
+        loadMarkersFromDB()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getAutoCompleteSearchResults()
         val fm = childFragmentManager
@@ -107,11 +114,11 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             )
             return
         }
-        setUpMap(null)
+        setUpMap()
     }
 
     @SuppressLint("MissingPermission")
-    fun setUpMap(newLocation: LatLng?){
+    fun setUpMap(){
         mMap.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
             // Got last known location. In some rare situations this can be null.
@@ -122,15 +129,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             }else{
                 Log.d(TAG, "Last Location is Null")
             }
-
-            if (newLocation != null){
-                lastLocation = location
-                val currentLatLng = LatLng(newLocation.latitude, newLocation.longitude)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
-            }else{
-            Log.d(TAG, "New Location is Null")
-            }
-
         }
     }
 
@@ -154,6 +152,8 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         model.spotLatLng.observe(this, Observer { latLng ->
             latLng?.let{
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12f))
+                mMap.addMarker(MarkerOptions().position(it))
+
             }
         })
 
@@ -165,6 +165,28 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
     override fun onMarkerClick(p0: Marker?) = false
 
+    private fun loadMarkersFromDB(){
+        val query = database.getReference("spots/").orderByChild("place/latLng")
+        query.addListenerForSingleValueEvent(object: ValueEventListener{
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if(dataSnapshot.exists()){
+                    var lat: Double
+                    var lng: Double
+                    var position: LatLng
+                    for(spotLatLng:DataSnapshot in dataSnapshot.children){
+                        lat = spotLatLng.child("place/latLng/latitude/").value.toString().toDouble()
+                        lng = spotLatLng.child("place/latLng/longitude/").value.toString().toDouble()
+                        position = LatLng(lat, lng)
+                        mMap.addMarker(MarkerOptions().position(position))
+                        Log.d(TAG, "Lat: ${position.latitude} Lng: ${position.longitude}")
+                    }
+                }
+            }
+            override fun onCancelled(p0: DatabaseError) {
+            }
+        } )
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
@@ -173,7 +195,7 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the location-related task you need to do.
                     Log.d(TAG, "Location permission granted")
-                    setUpMap(null)
+                    setUpMap()
                 }
                 return
             }

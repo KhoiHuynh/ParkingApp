@@ -181,10 +181,10 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
 //        bottomBar.setOnNavigationItemReselectedListener { fragNavController.clearStack() }
     }
 
-//    override fun onBackPressed() {
-//        if (fragNavController.popFragment().not()) {
-//            super.onBackPressed()
-//        }
+    override fun onBackPressed() {
+        if (fragNavController.popFragment().not()) {
+            super.onBackPressed()
+        }
 //        println("ccurent frag: " + fragNavController.currentFrag)
 //        if (fragNavController.currentFrag is AddLocationFragment){
 //            println("True")
@@ -192,7 +192,7 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
 //            spotObj.setPlace(null)
 //            model.spot.postValue(null)
 //        }
-//    }
+    }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
