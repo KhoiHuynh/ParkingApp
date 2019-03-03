@@ -181,18 +181,18 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
 //        bottomBar.setOnNavigationItemReselectedListener { fragNavController.clearStack() }
     }
 
-    override fun onBackPressed() {
-        if (fragNavController.popFragment().not()) {
-            super.onBackPressed()
-        }
-        println("ccurent frag: " + fragNavController.currentFrag)
-        if (fragNavController.currentFrag is AddLocationFragment){
-            println("True")
-            spotObj.setDates(intArrayOf(0,0,0,0,0,0,0))
-            spotObj.setAddress(null)
-            model.spot.postValue(null)
-        }
-    }
+//    override fun onBackPressed() {
+//        if (fragNavController.popFragment().not()) {
+//            super.onBackPressed()
+//        }
+//        println("ccurent frag: " + fragNavController.currentFrag)
+//        if (fragNavController.currentFrag is AddLocationFragment){
+//            println("True")
+//            spotObj.setDates(intArrayOf(0,0,0,0,0,0,0))
+//            spotObj.setPlace(null)
+//            model.spot.postValue(null)
+//        }
+//    }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)

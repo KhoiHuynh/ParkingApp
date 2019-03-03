@@ -18,13 +18,13 @@ import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Handler
-import android.support.v7.widget.AppCompatImageButton
 import android.widget.*
 import kotlinx.android.synthetic.main.fragment_add_location.*
 import java.util.*
 
-var spotObj = Spot()
 class AddLocationFragment : BaseFragment(){
+    var spotObj = Spot()
+
     private var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = null
     private var mTimeSetListenerFrom: TimePickerDialog.OnTimeSetListener? = null
     private var mTimeSetListenerTo: TimePickerDialog.OnTimeSetListener? = null
@@ -80,7 +80,7 @@ class AddLocationFragment : BaseFragment(){
             clearButton()
         }, 100)
         button_next.setOnClickListener{
-//            if(spotObj.getAddress().isNullOrEmpty()){
+//            if(spotObj.getPlace().isNullOrEmpty()){
 //                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
 //            }
 //            else if(spotObj.getDates() == null || Arrays.equals(spotObj.getDates(), default)){
@@ -99,8 +99,9 @@ class AddLocationFragment : BaseFragment(){
                 //            spotObj.setDates(intArrayOf(1,1,1,1,1,1,1))
 //            spotObj.setDates(days)
 
-            spotObj.setAddress(tempPlace)
-            spotObj.printMe()
+            spotObj.setPlace(tempPlace)
+//            spotObj.setAddress((tempPlace?.name.toString()))
+//            spotObj.printMe()
 //            Log.d(TAG, "tempPlace: " + tempPlace.toString())
 //            println("my days array: " + Arrays.toString(days) )
 //            println("is the days here?" + Arrays.toString(spotObj.getDates()))
@@ -147,7 +148,7 @@ class AddLocationFragment : BaseFragment(){
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 val progressFloat: Float = seekBar.progress.toFloat()
                 val value = (progressFloat / 10.00).toFloat()
-                spotObj.setRate(value.toBigDecimal())
+                spotObj.setRate(value.toString())
             }
         })
     }
