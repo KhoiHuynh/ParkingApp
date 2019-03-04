@@ -1,8 +1,10 @@
 package com.example.khoi.parkingapp.fragments
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
@@ -13,7 +15,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import com.example.khoi.parkingapp.R
+import com.example.khoi.parkingapp.activities.RentActivity
 import com.example.khoi.parkingapp.bean.SharedViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -158,7 +162,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                         .title(it.getPlace()?.name.toString())
                         .snippet(strTime + "\n" + it.getRate() + "0 $/h"))
                     Log.d(TAG, "Adding marker '${it.getPlace()?.name.toString()} at position ${it.getPlace()?.latLng!!}")
-                    childFragmentManager.beginTransaction().remove(AddLocationFragment()).commit()
                     addTrigger = false
                 }
 
@@ -187,6 +190,13 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 return null
             }
         })
+
+        //onClick of the info Window
+        mMap.setOnInfoWindowClickListener {
+            Toast.makeText(activity,"info window clicked", Toast.LENGTH_SHORT).show()
+            val intent = Intent(activity, RentActivity::class.java)
+            activity?.startActivity(intent)
+        }
     }
 
     override fun onMarkerClick(p0: Marker?) = false

@@ -76,9 +76,14 @@ class Host2Fragment : BaseFragment(){
             spotObj.setDescription(description)
             Log.d(TAG, "spotObj description" + spotObj.getDescription())
             saveUserToDatabase()
+
             addTrigger = true
 
         }
+
+    }
+
+    private fun resetAddLocationFragment(){
 
     }
 

@@ -35,8 +35,8 @@ class Spot{
         this.days = dates
         println("setter: " + (this.days)?.forEach { println(it) })
     }
-    fun setTimeFrom(timeFrom: String){this.timeFrom = timeFrom}
-    fun setTimeTo(timeTo: String){this.timeTo = timeTo}
+    fun setTimeFrom(timeFrom: String?){this.timeFrom = timeFrom}
+    fun setTimeTo(timeTo: String?){this.timeTo = timeTo}
     fun setRate(rate: String){this.rate = rate}
     fun setDescription(description: String){this.description = description}
 

@@ -25,12 +25,14 @@ import java.util.*
 class AddLocationFragment : BaseFragment(){
     var spotObj = Spot()
 
-    private var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = null
+    var placeAutocompleteFragment: SupportPlaceAutocompleteFragment? = null
     private var mTimeSetListenerFrom: TimePickerDialog.OnTimeSetListener? = null
     private var mTimeSetListenerTo: TimePickerDialog.OnTimeSetListener? = null
     private lateinit var model: SharedViewModel
     private var tempPlace: Place? = null
-
+    private var fromTime: String? = null
+    private var toTime: String? = null
+    private var seekBarValue: Float? = null
     companion object {
         private val TAG = AddLocationFragment::class.qualifiedName
         fun newInstance(instance: Int): AddLocationFragment {
@@ -72,9 +74,14 @@ class AddLocationFragment : BaseFragment(){
         Handler().postDelayed({
             clearButton()
         }, 100)
+        Log.d(TAG, "I HOPE THIS DOESNT SHOW UP")
         button_next.setOnClickListener{
             checkDays()
             spotObj.setPlace(tempPlace)
+            spotObj.setTimeFrom(fromTime)
+            spotObj.setTimeTo(toTime)
+            println("seekbar value: " + seekBarValue.toString())
+            spotObj.setRate(seekBarValue.toString())
 
             if(spotObj.getPlace() == null){
                 Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
@@ -88,7 +95,7 @@ class AddLocationFragment : BaseFragment(){
             else if(spotObj.getTimeTo().isNullOrEmpty()){
                 Toast.makeText(activity, "Please select an available till time", Toast.LENGTH_LONG).show()
             }
-            else if(spotObj.getRate() == null || spotObj.getRate() == "0.0"){
+            else if(spotObj.getRate() == null || spotObj.getRate() == "0.0" || spotObj.getRate() == "null"){
                 Toast.makeText(activity, "Please select a rate larger than 0$", Toast.LENGTH_LONG).show()
             }
             else{
@@ -97,6 +104,30 @@ class AddLocationFragment : BaseFragment(){
                 mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
             }
         }
+        model.spot.observe(this, android.arch.lifecycle.Observer{spot ->
+            spot?.let {
+                if(addTrigger){
+                    reset()                }
+            }
+        })
+    }
+
+    private fun reset(){
+        placeAutocompleteFragment?.setText("")
+        tempPlace = null
+        checkbox_monday.isChecked = false
+        checkbox_tuesday.isChecked = false
+        checkbox_wednesday.isChecked = false
+        checkbox_thursday.isChecked = false
+        checkbox_friday.isChecked = false
+        checkbox_saturday.isChecked = false
+        checkbox_sunday.isChecked = false
+        tv_from_time.text = null
+        tv_to_time.text = null
+        fromTime = null
+        toTime = null
+        sb_rate.progress = 0
+        seekBarValue = null
     }
 
     private fun getAutoCompleteSearchResults(){
@@ -133,8 +164,7 @@ class AddLocationFragment : BaseFragment(){
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 val progressFloat: Float = seekBar.progress.toFloat()
-                val value = (progressFloat / 10.00).toFloat()
-                spotObj.setRate(value.toString())
+                seekBarValue = (progressFloat / 10.00).toFloat()
             }
         })
     }
@@ -188,9 +218,9 @@ class AddLocationFragment : BaseFragment(){
             }
             Log.d(AddLocationFragment.TAG, "minutes: $displayMinutes")
             val time : String
-            time = "$displayHour:$displayMinutes $amPM"
-            tv_from_time.text = time
-            spotObj.setTimeFrom(time)
+            fromTime = "$displayHour:$displayMinutes $amPM"
+            tv_from_time.text = fromTime
+//            spotObj.setTimeFrom(fromTime!!)
         }
         mTimeSetListenerTo = TimePickerDialog.OnTimeSetListener { _: TimePicker, hours: Int, minutes: Int ->
             var displayHour: Int
@@ -212,9 +242,9 @@ class AddLocationFragment : BaseFragment(){
                 displayMinutes = minutes.toString()
             }
             val time : String
-            time = "$displayHour:$displayMinutes $amPM"
-            tv_to_time.text = time
-            spotObj.setTimeTo(time)
+            toTime = "$displayHour:$displayMinutes $amPM"
+            tv_to_time.text = toTime
+//            spotObj.setTimeTo(toTime!!)
 
         }
     }
