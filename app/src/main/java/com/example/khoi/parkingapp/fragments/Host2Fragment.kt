@@ -65,13 +65,7 @@ class Host2Fragment : BaseFragment(){
                 spotObj = it
                 textView_address.text = spotObj.getPlace()?.name.toString()
                 searchedLocation = LatLng(spotObj.getPlace()!!.latLng.latitude, spotObj.getPlace()!!.latLng.longitude)
-//                latLng = it.getPlace()
-//                textView.text = it.getRate().toString()
-//                println("host2" + it.getPlace())
-//                println("host2" + Arrays.toString(it.getDates()))
-//                println("host2" + it.getRate())
-//                println("host2" + it.getTimeFrom())
-//                println("host2" + it.getTimeTo())
+
             }
         })
         val button = view.findViewById(R.id.button_register) as Button
@@ -82,6 +76,7 @@ class Host2Fragment : BaseFragment(){
             spotObj.setDescription(description)
             Log.d(TAG, "spotObj description" + spotObj.getDescription())
             saveUserToDatabase()
+            addTrigger = true
 
         }
 

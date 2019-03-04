@@ -33,13 +33,6 @@ class AddLocationFragment : BaseFragment(){
 
     companion object {
         private val TAG = AddLocationFragment::class.qualifiedName
-        private const val monday = 0
-        private const val tuesday = 1
-        private const val wednesday = 2
-        private const val thursday = 3
-        private const val friday = 4
-        private const val saturday = 5
-        private const val sunday = 6
         fun newInstance(instance: Int): AddLocationFragment {
             val args = Bundle()
             args.putInt(BaseFragment.ARGS_INSTANCE, instance)
@@ -80,36 +73,29 @@ class AddLocationFragment : BaseFragment(){
             clearButton()
         }, 100)
         button_next.setOnClickListener{
-//            if(spotObj.getPlace().isNullOrEmpty()){
-//                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
-//            }
-//            else if(spotObj.getDates() == null || Arrays.equals(spotObj.getDates(), default)){
-//                Toast.makeText(activity, "Please select at least one available day", Toast.LENGTH_LONG).show()
-//            }
-//            else if(spotObj.getTimeFrom().isNullOrEmpty()){
-//                Toast.makeText(activity, "Please select an available from time", Toast.LENGTH_LONG).show()
-//            }
-//            else if(spotObj.getTimeTo().isNullOrEmpty()){
-//                Toast.makeText(activity, "Please select an available till time", Toast.LENGTH_LONG).show()
-//            }
-//            else if(spotObj.getRate() == null || spotObj.getRate() == BigDecimal(0)){
-//                Toast.makeText(activity, "Please select a rate larger than 0$", Toast.LENGTH_LONG).show()
-//            }
-//            else{
-                //            spotObj.setDates(intArrayOf(1,1,1,1,1,1,1))
-//            spotObj.setDates(days)
-
+            checkDays()
             spotObj.setPlace(tempPlace)
-//            spotObj.setAddress((tempPlace?.name.toString()))
-//            spotObj.printMe()
-//            Log.d(TAG, "tempPlace: " + tempPlace.toString())
-//            println("my days array: " + Arrays.toString(days) )
-//            println("is the days here?" + Arrays.toString(spotObj.getDates()))
+
+            if(spotObj.getPlace() == null){
+                Toast.makeText(activity, "Please enter your spot address", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getDays() == null || spotObj.getDays() == listOf(0,0,0,0,0,0,0)){
+                Toast.makeText(activity, "Please select at least one available day", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getTimeFrom().isNullOrEmpty()){
+                Toast.makeText(activity, "Please select an available from time", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getTimeTo().isNullOrEmpty()){
+                Toast.makeText(activity, "Please select an available till time", Toast.LENGTH_LONG).show()
+            }
+            else if(spotObj.getRate() == null || spotObj.getRate() == "0.0"){
+                Toast.makeText(activity, "Please select a rate larger than 0$", Toast.LENGTH_LONG).show()
+            }
+            else{
+
                 model.spot.postValue(spotObj)
                 mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
-//            }
-
-
+            }
         }
     }
 
@@ -232,68 +218,51 @@ class AddLocationFragment : BaseFragment(){
 
         }
     }
-    private var arr: IntArray = intArrayOf(0,0,0,0,0,0,0)
-    fun onCheckboxClicked(view: View){
-        if(view is CheckBox){
-            val checked: Boolean = view.isChecked
-            when(view.id){
-                R.id.checkbox_monday -> {
-                    if (checked) {
-                        arr[monday] = 1
-                    }else{
-                        arr[monday] = 0
-                    }
-                }
-                R.id.checkbox_tuesday -> {
-                    if (checked) {
-                        arr[tuesday] = 1
-                    }else{
-                        arr[tuesday] = 0
-                    }
-                }
-                R.id.checkbox_wednesday -> {
-                    if (checked) {
-                        arr[wednesday] = 1
-                    }else{
-                        arr[wednesday] = 0
-                    }
-                }
-                R.id.checkbox_thursday -> {
-                    if (checked) {
-                        arr[thursday] = 1
-                    }else{
-                        arr[thursday] = 0
-                    }
-                }
-                R.id.checkbox_friday -> {
-                    if (checked) {
-                        arr[friday] = 1
-                    }else{
-                        arr[friday] = 0
-                    }
-                }
-                R.id.checkbox_saturday -> {
-                    if (checked) {
-                        arr[saturday] = 1
-                    }else{
-                        arr[saturday] = 0
-                    }
-                }
-                R.id.checkbox_sunday -> {
-                    if (checked) {
-                        arr[sunday] = 1
-                    }else{
-                        arr[sunday] = 0
-                    }
-                }
-            }
 
-//            days = arr.clone()
-//            println("clicked: " + Arrays.toString(days))
-            spotObj.setDates(arr)
-//            println("HELLO PARTH THIS IS THE SPOT OBJECT: " + Arrays.toString(spotObj.getDates()))
-
+    private fun checkDays(){
+        val arr = arrayListOf(0,0,0,0,0,0,0)
+        if(checkbox_monday.isChecked){
+            arr[0] = 1
         }
+        else{
+            arr[0] = 0
+        }
+        if(checkbox_tuesday.isChecked){
+            arr[1] = 1
+        }
+        else{
+            arr[1] = 0
+        }
+        if(checkbox_wednesday.isChecked){
+            arr[2] = 1
+        }
+        else{
+            arr[2] = 0
+        }
+        if(checkbox_thursday.isChecked){
+            arr[3] = 1
+        }
+        else{
+            arr[3] = 0
+        }
+        if(checkbox_friday.isChecked){
+            arr[4] = 1
+        }
+        else{
+            arr[4] = 0
+        }
+        if(checkbox_saturday.isChecked){
+            arr[5] = 1
+        }
+        else{
+            arr[5] = 0
+        }
+        if(checkbox_sunday.isChecked){
+            arr[6] = 1
+        }
+        else{
+            arr[6] = 0
+        }
+        spotObj.setDays(arr)
     }
-
 }

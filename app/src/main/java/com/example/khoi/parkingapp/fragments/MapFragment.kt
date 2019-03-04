@@ -31,7 +31,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
-
+var addTrigger: Boolean = false
 class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     lateinit var mMap: GoogleMap
     private lateinit var model: SharedViewModel
@@ -150,13 +150,17 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
         model.spot.observe(this, Observer { spot ->
             spot?.let {
-                val strTime = it.getTimeFrom() + " - " + it.getTimeTo()
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.getPlace()?.latLng, 12f))
-                mMap.addMarker(MarkerOptions()
-                    .position(it.getPlace()?.latLng!!)
-                    .title(it.getPlace()?.name.toString())
-                    .snippet(strTime + "\n" + it.getRate() + "0 $/h"))
-                Log.d(TAG, "Adding marker '${it.getPlace()?.name.toString()} at position ${it.getPlace()?.latLng!!}")
+                if(addTrigger){
+                    val strTime = it.getTimeFrom() + " - " + it.getTimeTo()
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.getPlace()?.latLng, 12f))
+                    mMap.addMarker(MarkerOptions()
+                        .position(it.getPlace()?.latLng!!)
+                        .title(it.getPlace()?.name.toString())
+                        .snippet(strTime + "\n" + it.getRate() + "0 $/h"))
+                    Log.d(TAG, "Adding marker '${it.getPlace()?.name.toString()} at position ${it.getPlace()?.latLng!!}")
+                    childFragmentManager.beginTransaction().remove(AddLocationFragment()).commit()
+                    addTrigger = false
+                }
 
             }
         })
