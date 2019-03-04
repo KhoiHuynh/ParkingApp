@@ -76,21 +76,12 @@ class Host2Fragment : BaseFragment(){
         })
         val button = view.findViewById(R.id.button_register) as Button
         button.setOnClickListener{
-            Log.d(TAG, "Clicked")
+            Log.d(TAG, "Register button clicked")
             val description = edit_text_description.text.toString()
 
-            println("description: " + description)
             spotObj.setDescription(description)
             Log.d(TAG, "spotObj description" + spotObj.getDescription())
             saveUserToDatabase()
-
-
-//            Log.d(TAG, "Full Spot Object: \n" + spotObj.printMe())
-
-//            val mapFragment = MapFragment()
-//            mapFragment.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(searchedLocation, 12f))
-
-//            MapFragment().setUpMap(searchedLocation)
 
         }
 
@@ -105,9 +96,6 @@ class Host2Fragment : BaseFragment(){
                 if(dataSnapshot.exists()){ //if the spot already exists, we don't add it to the DB
                     Log.d(TAG, "Spot already exists")
                     Toast.makeText(mContext, "This address already exists", Toast.LENGTH_SHORT).show()
-//                    for (issue:DataSnapshot in dataSnapshot.children) {
-//                        println("id value: " + issue.child("place/id").value)
-//                    }
                 }
                 else{ //we add it if the spot doesn't exist
                     val uid = FirebaseAuth.getInstance().uid.toString()
