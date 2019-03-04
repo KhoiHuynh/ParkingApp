@@ -34,6 +34,7 @@
     <string name="thank_you_for_using_parkingapp_your_spot_has_been_added_succesfully">Thank you for using ParkingApp. Your spot has been added succesfully</string>
     <string name="ok">Ok</string>
     <string name="register">Register</string>
+    <string name="app_logo">App Logo</string>
 
     <!-- Strings related to login -->
 </resources>

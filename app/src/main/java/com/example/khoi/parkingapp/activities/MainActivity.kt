@@ -185,22 +185,17 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         if (fragNavController.popFragment().not()) {
             super.onBackPressed()
         }
-        println("ccurent frag: " + fragNavController.currentFrag)
-        if (fragNavController.currentFrag is AddLocationFragment){
-            println("True")
-            spotObj.setDates(intArrayOf(0,0,0,0,0,0,0))
-            spotObj.setAddress(null)
-            model.spot.postValue(null)
-        }
+//        println("ccurent frag: " + fragNavController.currentFrag)
+//        if (fragNavController.currentFrag is AddLocationFragment){
+//            println("True")
+//            spotObj.setDays(intArrayOf(0,0,0,0,0,0,0))
+//            spotObj.setPlace(null)
+//            model.spot.postValue(null)
+//        }
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         fragNavController.onSaveInstanceState(outState!!)
-    }
-
-    private val addLocationFragment = AddLocationFragment()
-    fun onCheckboxClicked(view: View){
-        addLocationFragment.onCheckboxClicked(view)
     }
 }

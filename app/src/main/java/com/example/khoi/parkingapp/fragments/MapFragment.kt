@@ -1,6 +1,5 @@
 package com.example.khoi.parkingapp.fragments
 
-
 import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -13,6 +12,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import com.example.khoi.parkingapp.R
 import com.example.khoi.parkingapp.bean.SharedViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -24,12 +24,14 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.common.api.Status
+import com.google.android.gms.maps.model.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
-
+var addTrigger: Boolean = false
 class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     lateinit var mMap: GoogleMap
     private lateinit var model: SharedViewModel
@@ -37,6 +39,8 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private lateinit var lastLocation: Location
     private lateinit var searchedLocation: LatLng
     private lateinit var  autocompleteFragment: PlaceAutocompleteFragment
+    private lateinit var database: FirebaseDatabase
+    private lateinit var row: View
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
@@ -61,8 +65,10 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        println("zzz")
         val view = inflater.inflate(R.layout.fragment_map, container, false)
+        row = layoutInflater.inflate(R.layout.custom_info_window, null)
+        database = FirebaseDatabase.getInstance()
+        loadMarkersFromDB()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getAutoCompleteSearchResults()
         val fm = childFragmentManager
@@ -97,7 +103,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         }
     }
 
-
     private fun checkPermission() {
         if (ActivityCompat.checkSelfPermission(activity!!.applicationContext,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -107,11 +112,11 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             )
             return
         }
-        setUpMap(null)
+        setUpMap()
     }
 
     @SuppressLint("MissingPermission")
-    fun setUpMap(newLocation: LatLng?){
+    fun setUpMap(){
         mMap.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener(activity!!) { location ->
             // Got last known location. In some rare situations this can be null.
@@ -122,21 +127,13 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             }else{
                 Log.d(TAG, "Last Location is Null")
             }
-
-            if (newLocation != null){
-                lastLocation = location
-                val currentLatLng = LatLng(newLocation.latitude, newLocation.longitude)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
-            }else{
-            Log.d(TAG, "New Location is Null")
-            }
-
         }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         checkPermission()
+
         try {
             val success = googleMap.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(
@@ -150,10 +147,21 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         } catch (e: Resources.NotFoundException) {
             Log.e(TAG, "Can't find style. Error: ", e)
         }
-        
-        model.spotLatLng.observe(this, Observer { latLng ->
-            latLng?.let{
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12f))
+
+        model.spot.observe(this, Observer { spot ->
+            spot?.let {
+                if(addTrigger){
+                    val strTime = it.getTimeFrom() + " - " + it.getTimeTo()
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.getPlace()?.latLng, 12f))
+                    mMap.addMarker(MarkerOptions()
+                        .position(it.getPlace()?.latLng!!)
+                        .title(it.getPlace()?.name.toString())
+                        .snippet(strTime + "\n" + it.getRate() + "0 $/h"))
+                    Log.d(TAG, "Adding marker '${it.getPlace()?.name.toString()} at position ${it.getPlace()?.latLng!!}")
+                    childFragmentManager.beginTransaction().remove(AddLocationFragment()).commit()
+                    addTrigger = false
+                }
+
             }
         })
 
@@ -161,9 +169,54 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.setOnMarkerClickListener(this)
         mMap.uiSettings.isMapToolbarEnabled = false
+
+        //setting up the info window for each marker
+        mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(marker: Marker?): View {
+                val info: View = layoutInflater.inflate(R.layout.custom_info_window, null)
+                val tvAddress: TextView = info.findViewById(R.id.textView_iw_address)
+                val tvTime: TextView = info.findViewById(R.id.textView_iw_time)
+
+                tvAddress.text = marker?.title
+                tvTime.text = marker?.snippet
+
+                return info
+            }
+
+            override fun getInfoContents(marker: Marker?): View? {
+                return null
+            }
+        })
     }
 
     override fun onMarkerClick(p0: Marker?) = false
+
+    private fun loadMarkersFromDB(){
+        val query = database.getReference("spots/").orderByChild("place/latLng")
+        query.addListenerForSingleValueEvent(object: ValueEventListener{
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if(dataSnapshot.exists()){
+                    var lat: Double
+                    var lng: Double
+                    var position: LatLng
+                    for(spot:DataSnapshot in dataSnapshot.children){
+                        lat = spot.child("place/latLng/latitude/").value.toString().toDouble()
+                        lng = spot.child("place/latLng/longitude/").value.toString().toDouble()
+                        position = LatLng(lat, lng)
+                        val strTime = spot.child("timeFrom").value.toString() + " - " +
+                                      spot.child("timeTo").value.toString()
+                        mMap.addMarker(MarkerOptions()
+                            .position(position)
+                            .title(spot.child("place/address").value.toString())
+                            .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+                        Log.d(TAG, "Loading markers at position: $position")
+                    }
+                }
+            }
+            override fun onCancelled(p0: DatabaseError) {
+            }
+        } )
+    }
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
@@ -173,7 +226,7 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the location-related task you need to do.
                     Log.d(TAG, "Location permission granted")
-                    setUpMap(null)
+                    setUpMap()
                 }
                 return
             }
