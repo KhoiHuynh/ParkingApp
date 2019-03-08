@@ -3,7 +3,6 @@ package com.example.khoi.parkingapp.fragments
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.FragmentActivity
@@ -75,7 +74,7 @@ class Host2Fragment : BaseFragment(){
 
             spotObj.setDescription(description)
             Log.d(TAG, "spotObj description" + spotObj.getDescription())
-            saveUserToDatabase()
+            saveSpotToDatabase()
 
             addTrigger = true
 
@@ -87,7 +86,7 @@ class Host2Fragment : BaseFragment(){
 
     }
 
-    private fun saveUserToDatabase(){
+    private fun saveSpotToDatabase(){
         val query = FirebaseDatabase.getInstance().getReference("spots/")
             .orderByChild("place/id").equalTo(spotObj.getPlace()?.id)
 
@@ -114,7 +113,7 @@ class Host2Fragment : BaseFragment(){
 
                             model.spotLatLng.postValue(searchedLocation)
                             model.spot.postValue(spotObj)
-                            spotObj.printMe()
+//                            spotObj.printMe()
                         }
                         .addOnFailureListener{
                             Log.w(TAG, "saveSpotToDatabase: Failed", it)

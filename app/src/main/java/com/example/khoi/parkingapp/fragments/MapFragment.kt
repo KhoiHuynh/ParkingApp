@@ -19,6 +19,7 @@ import android.widget.Toast
 import com.example.khoi.parkingapp.R
 import com.example.khoi.parkingapp.activities.RentActivity
 import com.example.khoi.parkingapp.bean.SharedViewModel
+import com.example.khoi.parkingapp.bean.Spot
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Place
@@ -30,10 +31,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.model.*
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
+import java.util.*
 
 var addTrigger: Boolean = false
 class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -45,6 +44,8 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private lateinit var  autocompleteFragment: PlaceAutocompleteFragment
     private lateinit var database: FirebaseDatabase
     private lateinit var row: View
+    private var markerMap: HashMap<Marker, DataSnapshot> = HashMap()
+    private var addedNewSpot: Boolean = false
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
@@ -72,7 +73,7 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         val view = inflater.inflate(R.layout.fragment_map, container, false)
         row = layoutInflater.inflate(R.layout.custom_info_window, null)
         database = FirebaseDatabase.getInstance()
-        loadMarkersFromDB()
+        loadMarkersFromDB(null, null)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getAutoCompleteSearchResults()
         val fm = childFragmentManager
@@ -157,12 +158,25 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 if(addTrigger){
                     val strTime = it.getTimeFrom() + " - " + it.getTimeTo()
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.getPlace()?.latLng, 12f))
-                    mMap.addMarker(MarkerOptions()
+                    val marker = mMap.addMarker(MarkerOptions()
                         .position(it.getPlace()?.latLng!!)
-                        .title(it.getPlace()?.name.toString())
+                        .title(it.getPlace()?.address.toString())
                         .snippet(strTime + "\n" + it.getRate() + "0 $/h"))
-                    Log.d(TAG, "Adding marker '${it.getPlace()?.name.toString()} at position ${it.getPlace()?.latLng!!}")
-                    addTrigger = false
+                    val id = it.getPlace()!!.id
+
+                    loadMarkersFromDB(marker, id)
+//                    val query = database.getReference("spots/").orderByChild("place/id").equalTo(id)
+//                    query.addListenerForSingleValueEvent(object: ValueEventListener{
+//                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                            if(dataSnapshot.exists()){
+//                                markerMap.put(marker, dataSnapshot)
+//                                Log.d(TAG, "Adding marker '${it.getPlace()?.name.toString()} at position ${it.getPlace()?.latLng!!}")
+//                                addTrigger = false
+//                            }
+//                        }
+//                        override fun onCancelled(p0: DatabaseError) {
+//                        }
+//                    })
                 }
 
             }
@@ -192,40 +206,102 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         })
 
         //onClick of the info Window
-        mMap.setOnInfoWindowClickListener {
+        mMap.setOnInfoWindowClickListener {marker ->
             Toast.makeText(activity,"info window clicked", Toast.LENGTH_SHORT).show()
+            val bundle = Bundle()
+            Log.d(TAG, "MarkerMap: \n" + Arrays.asList(markerMap))
+            Log.d(TAG, "Marker Title: " + marker.title)
+            val spot: DataSnapshot = markerMap.get(marker)!!
+            println("datasnapshot: " + spot)
+
+            val t = object : GenericTypeIndicator<ArrayList<Int>>(){}
+            val address = spot.child("place/address/").value.toString()
+            val description = spot.child("description/").value.toString()
+            val rate = spot.child("rate/").value.toString()
+            val days: ArrayList<Int> = spot.child("days/").getValue(t)!!
+            val fromTime = spot.child("timeFrom/").value.toString()
+            val toTime = spot.child("timeTo/").value.toString()
+
+            Log.d(TAG, "arrayList of days: " + Arrays.asList(days))
+            Log.d(TAG, "place address: $address")
+            bundle.putString("address", address)
+            bundle.putString("description", description)
+            bundle.putString("rate", rate)
+            bundle.putIntegerArrayList("days", days)
+            bundle.putString("fromTime", fromTime)
+            bundle.putString("toTime", toTime)
+
+
             val intent = Intent(activity, RentActivity::class.java)
+            intent.putExtra("bundle", bundle)
             activity?.startActivity(intent)
         }
     }
 
     override fun onMarkerClick(p0: Marker?) = false
 
-    private fun loadMarkersFromDB(){
-        val query = database.getReference("spots/").orderByChild("place/latLng")
-        query.addListenerForSingleValueEvent(object: ValueEventListener{
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if(dataSnapshot.exists()){
-                    var lat: Double
-                    var lng: Double
-                    var position: LatLng
-                    for(spot:DataSnapshot in dataSnapshot.children){
-                        lat = spot.child("place/latLng/latitude/").value.toString().toDouble()
-                        lng = spot.child("place/latLng/longitude/").value.toString().toDouble()
-                        position = LatLng(lat, lng)
-                        val strTime = spot.child("timeFrom").value.toString() + " - " +
-                                      spot.child("timeTo").value.toString()
-                        mMap.addMarker(MarkerOptions()
-                            .position(position)
-                            .title(spot.child("place/address").value.toString())
-                            .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
-                        Log.d(TAG, "Loading markers at position: $position")
+    private fun loadMarkersFromDB(newMarker: Marker?, placeId: String?){
+        if(newMarker != null && placeId != null){
+            val query = database.getReference("spots/").orderByChild("place/id").equalTo(placeId)
+            query.addListenerForSingleValueEvent(object : ValueEventListener{
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if(dataSnapshot.exists()){
+                        for(newSpot:DataSnapshot in dataSnapshot.children){
+                            val lat: Double = newSpot.child("place/latLng/latitude/").value.toString().toDouble()
+                            val lng: Double = newSpot.child("place/latLng/longitude/").value.toString().toDouble()
+                            val position = LatLng(lat, lng)
+
+//                            val strTime = newSpot.child("timeFrom").value.toString() + " - " +
+//                                    newSpot.child("timeTo").value.toString()
+//                            val marker = mMap.addMarker(MarkerOptions()
+//                                .position(position)
+//                                .title(newSpot.child("place/address/").value.toString())
+//                                .snippet(strTime + "\n" + newSpot.child("rate").value.toString() + "0 $/h"))
+
+                            markerMap.put(newMarker, newSpot)
+                            Log.d(TAG, "Loading new Marker at position: $position")
+                        }
                     }
                 }
-            }
-            override fun onCancelled(p0: DatabaseError) {
-            }
-        } )
+
+                override fun onCancelled(p0: DatabaseError) {
+                }
+            })
+        }
+        if(newMarker == null && placeId == null){
+            val query = database.getReference("spots/").orderByChild("place/latLng")
+            query.addListenerForSingleValueEvent(object: ValueEventListener{
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if(dataSnapshot.exists()){
+                        var lat: Double
+                        var lng: Double
+                        var position: LatLng
+                        for(spot:DataSnapshot in dataSnapshot.children){
+                            lat = spot.child("place/latLng/latitude/").value.toString().toDouble()
+                            lng = spot.child("place/latLng/longitude/").value.toString().toDouble()
+                            position = LatLng(lat, lng)
+                            val strTime = spot.child("timeFrom").value.toString() + " - " +
+                                    spot.child("timeTo").value.toString()
+                            val marker = mMap.addMarker(MarkerOptions()
+                                .position(position)
+                                .title(spot.child("place/address").value.toString())
+                                .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+
+                            markerMap.put(marker, spot)
+                            Log.d(TAG, "Loading markers at position: $position")
+
+
+                        }
+                    }
+                }
+                override fun onCancelled(p0: DatabaseError) {
+                }
+            } )
+        }
+    }
+
+    private fun convertToSpotObject(dataSnapshot: DataSnapshot){
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
