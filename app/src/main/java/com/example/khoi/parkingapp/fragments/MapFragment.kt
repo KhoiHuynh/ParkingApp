@@ -190,6 +190,7 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         //setting up the info window for each marker
         mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker?): View {
+                marker?.setInfoWindowAnchor(0.5f,-0.15f)
                 val info: View = layoutInflater.inflate(R.layout.custom_info_window, null)
                 val tvAddress: TextView = info.findViewById(R.id.textView_iw_address)
                 val tvTime: TextView = info.findViewById(R.id.textView_iw_time)
