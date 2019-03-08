@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.app.ActivityCompat
 import android.util.Log
 import android.view.LayoutInflater
@@ -73,7 +74,9 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         val view = inflater.inflate(R.layout.fragment_map, container, false)
         row = layoutInflater.inflate(R.layout.custom_info_window, null)
         database = FirebaseDatabase.getInstance()
-        loadMarkersFromDB(null, null)
+        Handler().postDelayed({
+            loadMarkersFromDB(null, null)
+        }, 100)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
         getAutoCompleteSearchResults()
         val fm = childFragmentManager
@@ -208,12 +211,8 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
         //onClick of the info Window
         mMap.setOnInfoWindowClickListener {marker ->
-            Toast.makeText(activity,"info window clicked", Toast.LENGTH_SHORT).show()
             val bundle = Bundle()
-            Log.d(TAG, "MarkerMap: \n" + Arrays.asList(markerMap))
-            Log.d(TAG, "Marker Title: " + marker.title)
             val spot: DataSnapshot = markerMap.get(marker)!!
-            println("datasnapshot: " + spot)
 
             val t = object : GenericTypeIndicator<ArrayList<Int>>(){}
             val address = spot.child("place/address/").value.toString()
@@ -223,8 +222,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             val fromTime = spot.child("timeFrom/").value.toString()
             val toTime = spot.child("timeTo/").value.toString()
 
-            Log.d(TAG, "arrayList of days: " + Arrays.asList(days))
-            Log.d(TAG, "place address: $address")
             bundle.putString("address", address)
             bundle.putString("description", description)
             bundle.putString("rate", rate)

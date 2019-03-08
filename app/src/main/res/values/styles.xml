@@ -15,4 +15,9 @@
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
     </style>
+    <style name="ToggleButton" parent="">
+        <item name="colorControlNormal">@color/colorPrimaryDark</item>
+        <item name="colorAccent">#19E698</item>
+    </style>
+    
 </resources>
