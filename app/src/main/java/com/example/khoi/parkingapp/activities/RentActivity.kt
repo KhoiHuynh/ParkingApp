@@ -31,7 +31,6 @@ class RentActivity : AppCompatActivity(), View.OnClickListener {
         when(v?.id){
             R.id.toggleButton_monday ->{
                 Toast.makeText(this, toggleButton_monday.isChecked.toString(), Toast.LENGTH_LONG).show()
-//                toggleButton_monday.isChecked
                 return
             }
             R.id.toggleButton_tuesday ->{
