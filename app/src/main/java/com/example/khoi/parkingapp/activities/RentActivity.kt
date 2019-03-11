@@ -1,16 +1,11 @@
 package com.example.khoi.parkingapp.activities
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
-import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarChangeListener
-import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarFinalValueListener
-import com.crystal.crystalrangeseekbar.widgets.CrystalRangeSeekbar
 import com.example.khoi.parkingapp.R
 import kotlinx.android.synthetic.main.activity_rent.*
 import kotlin.collections.ArrayList
@@ -22,7 +17,6 @@ class RentActivity : AppCompatActivity(), View.OnClickListener {
     private var days: ArrayList<Int>? = null
     private var fromTime: String? = null
     private var toTime: String? = null
-
     companion object {
         private const val TAG = "RentActivity"
     }
@@ -44,8 +38,18 @@ class RentActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rent)
         setupUI()
+//        setupStripePayment()
 
     }
+
+//    private fun setupStripePayment(){
+//        val cardToSave = card_input_widget.card
+//        if(cardToSave == null){
+//            Toast.makeText(this, "Invalid Card Data", Toast.LENGTH_LONG).show()
+//        }
+////        cardToSave?.setName("Customer Name")
+////        cardToSave?.setAddressZip("12345")
+//    }
 
     private fun convertStringTimeToMin(strTime: String): Int{
         var tempStrTime = strTime

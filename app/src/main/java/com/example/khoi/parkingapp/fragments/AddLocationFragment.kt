@@ -4,7 +4,7 @@ import android.app.TimePickerDialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.support.v4.app.FragmentManager
+import androidx.fragment.app.FragmentManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,7 +16,7 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.PlaceSelectionListener
 import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProviders
 import android.os.Handler
 import android.widget.*
 import kotlinx.android.synthetic.main.fragment_add_location.*
@@ -104,7 +104,7 @@ class AddLocationFragment : BaseFragment(){
                 mFragmentNavigation.pushFragment(Host2Fragment.newInstance(0))
             }
         }
-        model.spot.observe(this, android.arch.lifecycle.Observer{spot ->
+        model.spot.observe(this, androidx.lifecycle.Observer{ spot ->
             spot?.let {
                 if(addTrigger){
                     reset()                }
