@@ -3,12 +3,20 @@ package com.example.khoi.parkingapp.activities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import com.example.khoi.parkingapp.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_rent.*
 import kotlin.collections.ArrayList
+import com.stripe.android.Stripe
+import com.stripe.android.TokenCallback
+import com.stripe.android.model.Token
+import java.lang.Exception
+import java.security.AccessController.getContext
 
 class RentActivity : AppCompatActivity(), View.OnClickListener {
     private var address: String? = null
@@ -38,18 +46,64 @@ class RentActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rent)
         setupUI()
-//        setupStripePayment()
-
+        button_rent.setOnClickListener{
+            setupStripePayment()
+            val charge = 1550
+            val currentUser = FirebaseAuth.getInstance().currentUser?.uid
+            val database = FirebaseDatabase.getInstance()
+//            val pushId = database.getReference("stripe_customers/$currentUser/charges/").push().key
+            val pushId = database.getReference("stripe_customers/$currentUser/charges").push().key
+            val ref = database.getReference("stripe_customers/$currentUser/charges/$pushId/amount")
+            //save the token id from the "token" object we received from Stripe
+            ref.setValue(charge)
+                .addOnSuccessListener {
+                    Log.d(TAG, "Added Stripe charge successfully")
+                }
+                .addOnFailureListener {
+                    Log.d(TAG, "Stripe charge failed to add to DB")
+                }
+        }
     }
 
-//    private fun setupStripePayment(){
-//        val cardToSave = card_input_widget.card
-//        if(cardToSave == null){
-//            Toast.makeText(this, "Invalid Card Data", Toast.LENGTH_LONG).show()
-//        }
-////        cardToSave?.setName("Customer Name")
-////        cardToSave?.setAddressZip("12345")
-//    }
+    private fun setupStripePayment(){
+        val cardToSave = card_input_widget.card
+        if(cardToSave == null){
+            Toast.makeText(this, "Invalid Card Data", Toast.LENGTH_LONG).show()
+        }
+        cardToSave?.setName("Customer Name")
+
+        val stripe: Stripe = Stripe(this@RentActivity, "pk_test_luUv7LE0GLSq9YCrJbYmdSPN")
+        if (cardToSave != null) {
+            stripe.createToken(
+                cardToSave,
+                 object:TokenCallback {
+                     override fun onSuccess(token: Token?) {
+                         val currentUser = FirebaseAuth.getInstance().currentUser?.uid
+                         val database = FirebaseDatabase.getInstance()
+                         val pushId = database.getReference("stripe_customers/$currentUser/sources/").push().key
+                         val ref = database.getReference("stripe_customers/$currentUser/sources/$pushId/token/")
+                         //save the token id from the "token" object we received from Stripe
+                         ref.setValue(token?.id)
+                             .addOnSuccessListener {
+                                 Log.d(TAG, "Added Stripe Token to database successfully")
+                             }
+                             .addOnFailureListener {
+                                 Log.d(TAG, "Failed to add Token to database")
+                             }
+                     }
+
+                     override fun onError(error: Exception?) {
+                         // Show localized error message
+                         if (error != null) {
+                             Toast.makeText(
+                                 this@RentActivity, error.message, Toast.LENGTH_LONG).show()
+                         }
+                     }
+                 }
+            )
+        }
+    }
+
 
     private fun convertStringTimeToMin(strTime: String): Int{
         var tempStrTime = strTime
