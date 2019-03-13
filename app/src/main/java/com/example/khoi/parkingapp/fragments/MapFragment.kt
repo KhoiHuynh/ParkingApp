@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
@@ -17,6 +20,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.example.khoi.parkingapp.R
 import com.example.khoi.parkingapp.activities.RentActivity
 import com.example.khoi.parkingapp.bean.SharedViewModel
@@ -65,6 +70,16 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         model = activity?.run {
             ViewModelProviders.of(this).get(SharedViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
+    }
+
+    private lateinit var bitmapdraw: BitmapDrawable
+    private lateinit var b: Bitmap
+    private lateinit var customMarker: Bitmap
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        bitmapdraw = ContextCompat.getDrawable(context!!,R.drawable.marker_logo) as BitmapDrawable
+        b = bitmapdraw.bitmap
+        customMarker = Bitmap.createScaledBitmap(b,65, 92, false)
     }
 
     override fun onCreateView(
@@ -159,15 +174,17 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         model.spot.observe(this, Observer { spot ->
             spot?.let {
                 if(addTrigger){
+                    mFragmentNavigation.clearStack()
                     val strTime = it.getTimeFrom() + " - " + it.getTimeTo()
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.getPlace()?.latLng, 12f))
                     val marker = mMap.addMarker(MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromBitmap(customMarker))
                         .position(it.getPlace()?.latLng!!)
                         .title(it.getPlace()?.address.toString())
                         .snippet(strTime + "\n" + it.getRate() + "0 $/h"))
                     val id = it.getPlace()!!.id
-
                     loadMarkersFromDB(marker, id)
+                    addTrigger = false
 //                    val query = database.getReference("spots/").orderByChild("place/id").equalTo(id)
 //                    query.addListenerForSingleValueEvent(object: ValueEventListener{
 //                        override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -229,10 +246,13 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             bundle.putString("fromTime", fromTime)
             bundle.putString("toTime", toTime)
 
+            val rentFragment: Fragment = RentFragment.newInstance(0)
+            rentFragment.arguments = bundle
+            mFragmentNavigation.pushFragment(rentFragment)
 
-            val intent = Intent(activity, RentActivity::class.java)
-            intent.putExtra("bundle", bundle)
-            activity?.startActivity(intent)
+//            val intent = Intent(activity, RentActivity::class.java)
+//            intent.putExtra("bundle", bundle)
+//            activity?.startActivity(intent)
         }
     }
 
@@ -248,14 +268,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                             val lat: Double = newSpot.child("place/latLng/latitude/").value.toString().toDouble()
                             val lng: Double = newSpot.child("place/latLng/longitude/").value.toString().toDouble()
                             val position = LatLng(lat, lng)
-
-//                            val strTime = newSpot.child("timeFrom").value.toString() + " - " +
-//                                    newSpot.child("timeTo").value.toString()
-//                            val marker = mMap.addMarker(MarkerOptions()
-//                                .position(position)
-//                                .title(newSpot.child("place/address/").value.toString())
-//                                .snippet(strTime + "\n" + newSpot.child("rate").value.toString() + "0 $/h"))
-
                             markerMap.put(newMarker, newSpot)
                             Log.d(TAG, "Loading new Marker at position: $position")
                         }
@@ -282,8 +294,10 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                                     spot.child("timeTo").value.toString()
                             val marker = mMap.addMarker(MarkerOptions()
                                 .position(position)
+                                .icon(BitmapDescriptorFactory.fromBitmap(customMarker))
                                 .title(spot.child("place/address").value.toString())
                                 .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+
 
                             markerMap.put(marker, spot)
                             Log.d(TAG, "Loading markers at position: $position")
@@ -296,10 +310,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 }
             } )
         }
-    }
-
-    private fun convertToSpotObject(dataSnapshot: DataSnapshot){
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
@@ -322,5 +332,4 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             }
         }
     }
-
 }
