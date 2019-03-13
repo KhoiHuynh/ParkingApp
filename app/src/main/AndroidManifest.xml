@@ -18,11 +18,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.RentActivity"
+        <activity android:name=".activities.PaymentInfoActivity"
+            android:label="Payment Information">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.RentActivity" />
+        </activity>
+        <activity
+            android:name=".activities.RentActivity"
             android:label="Rent">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity"/>
+                android:value=".activities.MainActivity" />
         </activity>
 
         <uses-library
@@ -51,10 +58,10 @@
         </activity>
         <activity
             android:name=".activities.MainActivity"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".activities.LoginActivity"
-            android:theme="@style/HiddenTitleTheme"></activity>
+            android:theme="@style/HiddenTitleTheme" />
         <activity
             android:name=".activities.RegisterActivity"
             android:theme="@style/HiddenTitleTheme">

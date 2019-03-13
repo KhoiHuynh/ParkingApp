@@ -53,5 +53,3 @@ dependencies {
     implementation 'com.stripe:stripe-android:8.5.0'
 }
 apply plugin: 'com.google.gms.google-services'
-
-
