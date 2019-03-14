@@ -68,6 +68,7 @@ exports.createStripeCustomer = functions.auth.user().onCreate((user) => {
 exports.addPaymentSource = functions.database
     .ref('/stripe_customers/{userId}/sources/{pushId}/token').onWrite((change, context) => {
       const source = change.after.val();
+      var tempCustomer
       if (source === null){
         return null;
       }
@@ -75,8 +76,12 @@ exports.addPaymentSource = functions.database
           .once('value').then((snapshot) => {
             return snapshot.val();
           }).then((customer) => {
+            tempCustomer = customer
             return stripe.customers.createSource(customer, {source:source});
-          }).then((response) => {
+          }).then((response) => { //this will make the new card that was add as default
+            stripe.customers.update(tempCustomer, {
+                default_source: response.id
+            })
             return change.after.ref.parent.set(response);
           }, (error) => {
             return change.after.ref.parent.child('error').set(userFacingMessage(error));
