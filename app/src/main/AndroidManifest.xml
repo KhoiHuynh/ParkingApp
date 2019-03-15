@@ -18,7 +18,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.PaymentInfoActivity"
+        <activity android:name=".activities.ManageSpotActivity"
+            android:label="Manage Spots">
+        </activity>
+        <activity
+            android:name=".activities.PaymentInfoActivity"
             android:label="Payment Information">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

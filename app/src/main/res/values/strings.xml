@@ -36,6 +36,7 @@
     <string name="register">Register</string>
     <string name="app_logo">App Logo</string>
     <string name="pref_logout">logout</string>
+    <string name="pref_manage">manage</string>
 
     <!-- Strings related to login -->
 </resources>

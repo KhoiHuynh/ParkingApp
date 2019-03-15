@@ -24,6 +24,16 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="Manage Spots">
+        <Preference
+            android:title="Manage"
+            android:key="@string/pref_manage"
+            android:summary="Manage your parking spots"
+            android:icon="@drawable/marker_logo"
+            />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="Logins">
         <Preference
             android:title="Logout"

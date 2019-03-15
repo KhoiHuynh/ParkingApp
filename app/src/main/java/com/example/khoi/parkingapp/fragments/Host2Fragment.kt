@@ -97,7 +97,7 @@ class Host2Fragment : BaseFragment(){
                     val key = FirebaseDatabase.getInstance().getReference("spots").push().key
                     val ref = FirebaseDatabase.getInstance().getReference("/spots/$key")
                     val dialog = SuccessDialog()
-
+                    spotObj.setKey(key)
                     spotObj.setUid(uid)
                     ref.setValue(spotObj)
                         .addOnSuccessListener {

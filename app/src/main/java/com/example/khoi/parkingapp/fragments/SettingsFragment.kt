@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.View
 import androidx.preference.*
 import com.example.khoi.parkingapp.R
+import com.example.khoi.parkingapp.activities.ManageSpotActivity
 import com.example.khoi.parkingapp.activities.RegisterActivity
+import com.example.khoi.parkingapp.activities.RentActivity
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -47,6 +49,17 @@ class SettingsFragment : PreferenceFragmentCompat(){
                 return true
             }
         }
+
+        val manage: Preference = findPreference(getString(R.string.pref_manage))
+        manage.onPreferenceClickListener = object : Preference.OnPreferenceClickListener {
+            override fun onPreferenceClick(preference: Preference?): Boolean {
+                val intent = Intent(activity, ManageSpotActivity::class.java)
+                activity?.startActivity(intent)
+                return true
+            }
+
+        }
+
 
     }
 
