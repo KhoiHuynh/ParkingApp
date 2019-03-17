@@ -8,7 +8,7 @@
     <RadioGroup
         android:id="@+id/radio_group"
         android:layout_width="match_parent"
-        android:layout_height="196dp"
+        android:layout_height="156dp"
         android:orientation="vertical" />
 
     <com.google.android.material.textfield.TextInputLayout

@@ -20,6 +20,9 @@
         android:theme="@style/AppTheme">
         <activity android:name=".activities.ManageSpotActivity"
             android:label="Manage Spots">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MainActivity" />
         </activity>
         <activity
             android:name=".activities.PaymentInfoActivity"

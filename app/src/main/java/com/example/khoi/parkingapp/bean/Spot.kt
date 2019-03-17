@@ -17,6 +17,7 @@ class Spot{
     private var rate: String? = null
     private var description: String? = null
     private var key: String? = null
+    private var availability: String = "Available"
 
     //getters
     fun getUid() : String? {return uid}

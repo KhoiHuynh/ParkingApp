@@ -26,24 +26,9 @@ import android.widget.RadioGroup
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.stripe.android.model.*
-import java.text.DecimalFormat
 
 
 class RentFragment : BaseFragment(), View.OnClickListener {
-    override fun onClick(v: View?) {
-        when(v?.id){
-            R.id.toggleButton_monday ->{
-//                Toast.makeText(activity, toggleButton_monday.isChecked.toString(), Toast.LENGTH_LONG).show()
-                Toast.makeText(context, toggleButton_monday.isChecked.toString(), Toast.LENGTH_LONG).show()
-                return
-            }
-            R.id.toggleButton_tuesday ->{
-                Toast.makeText(context, "Tuesday Clicked", Toast.LENGTH_LONG).show()
-                return
-            }
-        }
-    }
-
     private var address: String? = null
     private var description: String? = null
     private var rate: String? = null
@@ -53,6 +38,77 @@ class RentFragment : BaseFragment(), View.OnClickListener {
     lateinit var radiogrp: RadioGroup
     private var radioButtonMap: HashMap<RadioButton, DataSnapshot> = HashMap()
     private var strLast4 = ""
+    private var selectedDays: ArrayList<Int> = arrayListOf(0,0,0,0,0,0,0)
+    private var charge: Int = 0
+    private var roundOffCharge: Float = 0f
+
+    override fun onClick(v: View?) {
+        when(v?.id){
+            R.id.toggleButton_monday ->{
+                if(toggleButton_monday.isChecked){
+                    selectedDays[0] = 1
+                }
+                else{
+                    selectedDays[0] = 0
+                }
+                return
+            }
+            R.id.toggleButton_tuesday ->{
+                if(toggleButton_tuesday.isChecked){
+                    selectedDays[1] = 1
+                }
+                else{
+                    selectedDays[1] = 0
+                }
+                return
+            }
+            R.id.toggleButton_wednesday ->{
+                if(toggleButton_wednesday.isChecked){
+                    selectedDays[2] = 1
+                }
+                else{
+                    selectedDays[2] = 0
+                }
+                return
+            }
+            R.id.toggleButton_thursday ->{
+                if(toggleButton_thursday.isChecked){
+                    selectedDays[3] = 1
+                }
+                else{
+                    selectedDays[3] = 0
+                }
+                return
+            }
+            R.id.toggleButton_friday ->{
+                if(toggleButton_friday.isChecked){
+                    selectedDays[4] = 1
+                }
+                else{
+                    selectedDays[4] = 0
+                }
+                return
+            }
+            R.id.toggleButton_saturday ->{
+                if(toggleButton_saturday.isChecked){
+                    selectedDays[5] = 1
+                }
+                else{
+                    selectedDays[5] = 0
+                }
+                return
+            }
+            R.id.toggleButton_sunday ->{
+                if(toggleButton_sunday.isChecked){
+                    selectedDays[6] = 1
+                }
+                else{
+                    selectedDays[6] = 0
+                }
+                return
+            }
+        }
+    }
 
     @SuppressLint("NewApi")
     private var viewId = View.generateViewId()
@@ -87,7 +143,7 @@ class RentFragment : BaseFragment(), View.OnClickListener {
 
 
         button_rent.setOnClickListener {
-            OpenDialog()
+            openDialog()
         }
 
         button2_pay.setOnClickListener {
@@ -211,7 +267,14 @@ class RentFragment : BaseFragment(), View.OnClickListener {
 //            tv_rent_time_range.text = minValue.toString() + " - " + maxValue.toString()
             val totalRentTime: Int = (maxValue.toInt() - minValue.toInt())
             val totalCost = ((totalRentTime * bundle.getString("rate")!!.toFloat())/ 60)
-            val temp = "Total: " + ("%.2f".format(totalCost)) + "$"
+            roundOffCharge = (Math.round(totalCost * 100.0)/100.0).toFloat()
+            val temp: String
+            if(roundOffCharge.toString().substringAfter(".").length == 1){
+                temp = "Total: " + roundOffCharge + "0$"
+            }
+            else{
+                temp = "Total: $roundOffCharge$"
+            }
             tv_rent_total_cost.text = temp
         }
 
@@ -239,7 +302,7 @@ class RentFragment : BaseFragment(), View.OnClickListener {
         })
     }
 
-    private fun OpenDialog() {
+    private fun openDialog() {
         val dialog = Dialog(this.context!!)
 
         dialog.setContentView(R.layout.stripe_layout)
@@ -310,14 +373,26 @@ class RentFragment : BaseFragment(), View.OnClickListener {
         val database = FirebaseDatabase.getInstance()
         val amountPushId = database.getReference("stripe_customers/$currentUser/charges").push().key
         val amountRef = database.getReference("stripe_customers/$currentUser/charges/$amountPushId/amount")
-        val charge = 555
-        amountRef.setValue(charge)
-            .addOnSuccessListener {
-                Log.d(TAG, "Added Stripe charge successfully")
-            }
-            .addOnFailureListener {
-                Log.d(TAG, "Stripe charge failed to add to DB")
-            }
+
+        if(selectedDays == arrayListOf(0,0,0,0,0,0,0)){
+            Log.d(TAG, "selected days: $selectedDays")
+            Toast.makeText(activity, "Please select at least one day", Toast.LENGTH_LONG).show()
+        }
+        else{
+            charge = (roundOffCharge*100).toInt()
+            Log.d(TAG, "charge: $charge")
+            amountRef.setValue(charge)
+                .addOnSuccessListener {
+                    Log.d(TAG, "Added Stripe charge successfully")
+                    Toast.makeText(activity, "Transaction Completed", Toast.LENGTH_LONG).show()
+
+                    mFragmentNavigation.clearStack()
+                }
+                .addOnFailureListener {
+                    Log.d(TAG, "Stripe charge failed to add to DB")
+                    Toast.makeText(activity, "Transaction Failed. Please try again later", Toast.LENGTH_LONG).show()
+                }
+        }
     }
 
     private fun addCard(token: String?) {

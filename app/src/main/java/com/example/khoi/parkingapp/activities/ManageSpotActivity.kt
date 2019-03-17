@@ -16,6 +16,7 @@ import com.baoyz.swipemenulistview.SwipeMenu
 import com.baoyz.swipemenulistview.SwipeMenuCreator
 import android.graphics.Color
 import android.os.Build
+import android.view.MenuItem
 import androidx.annotation.RequiresApi
 import java.util.*
 import kotlin.collections.HashMap
@@ -166,5 +167,14 @@ class ManageSpotActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home ->{
+                onBackPressed()
+            }
+        }
+        return true
     }
 }
