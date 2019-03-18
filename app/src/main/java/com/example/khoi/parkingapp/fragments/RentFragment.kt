@@ -3,6 +3,8 @@ package com.example.khoi.parkingapp.fragments
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -23,6 +25,8 @@ import kotlinx.android.synthetic.main.fragment_rent.*
 import java.lang.Exception
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.stripe.android.model.*
@@ -35,12 +39,16 @@ class RentFragment : BaseFragment(), View.OnClickListener {
     private var days: ArrayList<Int>? = null
     private var fromTime: String? = null
     private var toTime: String? = null
+    private var spotId: String? = null
     lateinit var radiogrp: RadioGroup
     private var radioButtonMap: HashMap<RadioButton, DataSnapshot> = HashMap()
     private var strLast4 = ""
     private var selectedDays: ArrayList<Int> = arrayListOf(0,0,0,0,0,0,0)
     private var charge: Int = 0
     private var roundOffCharge: Float = 0f
+    private lateinit var bitmapdraw: BitmapDrawable
+    private lateinit var b: Bitmap
+    private lateinit var rentedMarker: Bitmap
 
     override fun onClick(v: View?) {
         when(v?.id){
@@ -139,6 +147,10 @@ class RentFragment : BaseFragment(), View.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        bitmapdraw = ContextCompat.getDrawable(context!!,R.drawable.ic_grey_marker) as BitmapDrawable
+        b = bitmapdraw.bitmap
+        rentedMarker = Bitmap.createScaledBitmap(b,65, 92, false)
+
         setupUI()
 
 
@@ -213,6 +225,7 @@ class RentFragment : BaseFragment(), View.OnClickListener {
         days = bundle.getIntegerArrayList("days")
         fromTime = bundle.getString("fromTime")
         toTime = bundle.getString("toTime")
+        spotId = bundle.getString("spotId")
 
         Log.d(TAG, "myBundle $address")
         Log.d(TAG, "myBundle $description")
@@ -385,7 +398,10 @@ class RentFragment : BaseFragment(), View.OnClickListener {
                 .addOnSuccessListener {
                     Log.d(TAG, "Added Stripe charge successfully")
                     Toast.makeText(activity, "Transaction Completed", Toast.LENGTH_LONG).show()
-
+                    FirebaseDatabase.getInstance().getReference("/spots/$spotId/availability")
+                        .setValue("rented")
+                    val rentedSpot = markerMap2.get(spotId)
+                    rentedSpot?.setIcon(BitmapDescriptorFactory.fromBitmap(rentedMarker))
                     mFragmentNavigation.clearStack()
                 }
                 .addOnFailureListener {

@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.khoi.parkingapp.R
@@ -33,6 +34,7 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.model.*
 import com.google.firebase.database.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 var markerMap: HashMap<String, DataSnapshot> = HashMap()
@@ -47,9 +49,13 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private lateinit var  autocompleteFragment: PlaceAutocompleteFragment
     private lateinit var database: FirebaseDatabase
     private lateinit var row: View
-
     private var addedNewSpot: Boolean = false
-
+    private lateinit var bitmapdraw: BitmapDrawable
+    private lateinit var b: Bitmap
+    private lateinit var customMarker: Bitmap
+    private lateinit var bitmapdraw2: BitmapDrawable
+    private lateinit var b2: Bitmap
+    private lateinit var customMarker2: Bitmap
 
 
     companion object {
@@ -71,14 +77,18 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         } ?: throw Exception("Invalid Activity")
     }
 
-    private lateinit var bitmapdraw: BitmapDrawable
-    private lateinit var b: Bitmap
-    private lateinit var customMarker: Bitmap
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bitmapdraw = ContextCompat.getDrawable(context!!,R.drawable.marker_logo) as BitmapDrawable
         b = bitmapdraw.bitmap
         customMarker = Bitmap.createScaledBitmap(b,65, 92, false)
+
+        bitmapdraw2 = ContextCompat.getDrawable(context!!,R.drawable.ic_grey_marker) as BitmapDrawable
+        b2 = bitmapdraw2.bitmap
+        customMarker2 = Bitmap.createScaledBitmap(b2,65, 92, false)
+
+
     }
 
     override fun onCreateView(
@@ -169,8 +179,8 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         } catch (e: Resources.NotFoundException) {
             Log.e(TAG, "Can't find style. Error: ", e)
         }
-//        val database = FirebaseDatabase.getInstance()
-//        val path = database.getReference()
+
+// adding new marker to map
         model.spot.observe(this, Observer { spot ->
             spot?.let {
                 if(addTrigger){
@@ -229,31 +239,34 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
         //onClick of the info Window
         mMap.setOnInfoWindowClickListener {marker ->
-            val bundle = Bundle()
-            val spot: DataSnapshot = markerMap.get(marker.id)!!
+            if(marker.tag == "rented"){
+                Toast.makeText(activity, "This spot is currently occupied", Toast.LENGTH_LONG).show()
+            }
+            else{
+                val bundle = Bundle()
+                val spot: DataSnapshot = markerMap.get(marker.id)!!
 
-            val t = object : GenericTypeIndicator<ArrayList<Int>>(){}
-            val address = spot.child("place/address/").value.toString()
-            val description = spot.child("description/").value.toString()
-            val rate = spot.child("rate/").value.toString()
-            val days: ArrayList<Int> = spot.child("days/").getValue(t)!!
-            val fromTime = spot.child("timeFrom/").value.toString()
-            val toTime = spot.child("timeTo/").value.toString()
+                val t = object : GenericTypeIndicator<ArrayList<Int>>(){}
+                val address = spot.child("place/address/").value.toString()
+                val description = spot.child("description/").value.toString()
+                val rate = spot.child("rate/").value.toString()
+                val days: ArrayList<Int> = spot.child("days/").getValue(t)!!
+                val fromTime = spot.child("timeFrom/").value.toString()
+                val toTime = spot.child("timeTo/").value.toString()
+                val spotId = spot.key
 
-            bundle.putString("address", address)
-            bundle.putString("description", description)
-            bundle.putString("rate", rate)
-            bundle.putIntegerArrayList("days", days)
-            bundle.putString("fromTime", fromTime)
-            bundle.putString("toTime", toTime)
+                bundle.putString("address", address)
+                bundle.putString("description", description)
+                bundle.putString("rate", rate)
+                bundle.putIntegerArrayList("days", days)
+                bundle.putString("fromTime", fromTime)
+                bundle.putString("toTime", toTime)
+                bundle.putString("spotId", spotId)
 
-            val rentFragment: Fragment = RentFragment.newInstance(0)
-            rentFragment.arguments = bundle
-            mFragmentNavigation.pushFragment(rentFragment)
-
-//            val intent = Intent(activity, RentActivity::class.java)
-//            intent.putExtra("bundle", bundle)
-//            activity?.startActivity(intent)
+                val rentFragment: Fragment = RentFragment.newInstance(0)
+                rentFragment.arguments = bundle
+                mFragmentNavigation.pushFragment(rentFragment)
+            }
         }
     }
 
@@ -288,17 +301,39 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                         var lat: Double
                         var lng: Double
                         var position: LatLng
+                        var availability: String
                         for(spot:DataSnapshot in dataSnapshot.children){
+                            var marker: Marker
+                            availability = spot.child("availability").value.toString()
+
+                            Log.d(TAG, "available: $availability")
+
                             lat = spot.child("place/latLng/latitude/").value.toString().toDouble()
                             lng = spot.child("place/latLng/longitude/").value.toString().toDouble()
                             position = LatLng(lat, lng)
                             val strTime = spot.child("timeFrom").value.toString() + " - " +
                                     spot.child("timeTo").value.toString()
-                            val marker = mMap.addMarker(MarkerOptions()
-                                .position(position)
-                                .icon(BitmapDescriptorFactory.fromBitmap(customMarker))
-                                .title(spot.child("place/address").value.toString())
-                                .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+                            if(availability == "rented"){ //load with the grey marker
+                                Log.d(TAG, "in here")
+
+                                marker = mMap.addMarker(MarkerOptions()
+                                    .position(position)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(customMarker2))
+                                    .title(spot.child("place/address").value.toString())
+                                    .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+                                marker.tag = "rented"
+                            }
+                            else{ // load with the normal marker
+                                Log.d(TAG, "no here")
+
+                                marker = mMap.addMarker(MarkerOptions()
+                                    .position(position)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(customMarker))
+                                    .title(spot.child("place/address").value.toString())
+                                    .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+                            }
+
+
                             val key = spot.key
 //                            val ref = database.getReference("spots/$key/marker_id")
 //                            ref.setValue(marker.id)

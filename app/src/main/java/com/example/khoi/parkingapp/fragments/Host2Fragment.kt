@@ -99,6 +99,7 @@ class Host2Fragment : BaseFragment(){
                     val dialog = SuccessDialog()
                     spotObj.setKey(key)
                     spotObj.setUid(uid)
+                    spotObj.setAvailability("Available")
                     ref.setValue(spotObj)
                         .addOnSuccessListener {
                             Log.d(TAG, "Added spot $key to the Database success")
