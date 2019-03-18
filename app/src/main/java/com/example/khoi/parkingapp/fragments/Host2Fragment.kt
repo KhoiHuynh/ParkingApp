@@ -1,11 +1,11 @@
 package com.example.khoi.parkingapp.fragments
 
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.FragmentActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.fragment.app.FragmentActivity
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -82,10 +82,6 @@ class Host2Fragment : BaseFragment(){
 
     }
 
-    private fun resetAddLocationFragment(){
-
-    }
-
     private fun saveSpotToDatabase(){
         val query = FirebaseDatabase.getInstance().getReference("spots/")
             .orderByChild("place/id").equalTo(spotObj.getPlace()?.id)
@@ -101,12 +97,13 @@ class Host2Fragment : BaseFragment(){
                     val key = FirebaseDatabase.getInstance().getReference("spots").push().key
                     val ref = FirebaseDatabase.getInstance().getReference("/spots/$key")
                     val dialog = SuccessDialog()
-
+                    spotObj.setKey(key)
                     spotObj.setUid(uid)
+                    spotObj.setAvailability("Available")
                     ref.setValue(spotObj)
                         .addOnSuccessListener {
                             Log.d(TAG, "Added spot $key to the Database success")
-                            dialog.show(fragmentManager, "success dialog")
+                            dialog.show(fragmentManager!!, "success dialog")
                             mFragmentNavigation.clearStack()
                             mFragmentNavigation.switchTab(0) //switched to mapFragment tab
                             bottomBar.selectedItemId = R.id.nav_map

@@ -1,26 +1,26 @@
 package com.example.khoi.parkingapp.fragments
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
-import android.content.Intent
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.app.ActivityCompat
+import androidx.core.app.ActivityCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.example.khoi.parkingapp.R
-import com.example.khoi.parkingapp.activities.RentActivity
 import com.example.khoi.parkingapp.bean.SharedViewModel
-import com.example.khoi.parkingapp.bean.Spot
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.Place
@@ -34,7 +34,11 @@ import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.model.*
 import com.google.firebase.database.*
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
+var markerMap: HashMap<String, DataSnapshot> = HashMap()
+var markerMap2: HashMap<String, Marker> = HashMap()
 var addTrigger: Boolean = false
 class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     lateinit var mMap: GoogleMap
@@ -45,8 +49,14 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
     private lateinit var  autocompleteFragment: PlaceAutocompleteFragment
     private lateinit var database: FirebaseDatabase
     private lateinit var row: View
-    private var markerMap: HashMap<Marker, DataSnapshot> = HashMap()
     private var addedNewSpot: Boolean = false
+    private lateinit var bitmapdraw: BitmapDrawable
+    private lateinit var b: Bitmap
+    private lateinit var customMarker: Bitmap
+    private lateinit var bitmapdraw2: BitmapDrawable
+    private lateinit var b2: Bitmap
+    private lateinit var customMarker2: Bitmap
+
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
@@ -65,6 +75,20 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
         model = activity?.run {
             ViewModelProviders.of(this).get(SharedViewModel::class.java)
         } ?: throw Exception("Invalid Activity")
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        bitmapdraw = ContextCompat.getDrawable(context!!,R.drawable.marker_logo) as BitmapDrawable
+        b = bitmapdraw.bitmap
+        customMarker = Bitmap.createScaledBitmap(b,65, 92, false)
+
+        bitmapdraw2 = ContextCompat.getDrawable(context!!,R.drawable.ic_grey_marker) as BitmapDrawable
+        b2 = bitmapdraw2.bitmap
+        customMarker2 = Bitmap.createScaledBitmap(b2,65, 92, false)
+
+
     }
 
     override fun onCreateView(
@@ -156,18 +180,22 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             Log.e(TAG, "Can't find style. Error: ", e)
         }
 
+// adding new marker to map
         model.spot.observe(this, Observer { spot ->
             spot?.let {
                 if(addTrigger){
+                    mFragmentNavigation.clearStack()
                     val strTime = it.getTimeFrom() + " - " + it.getTimeTo()
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it.getPlace()?.latLng, 12f))
                     val marker = mMap.addMarker(MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromBitmap(customMarker))
                         .position(it.getPlace()?.latLng!!)
                         .title(it.getPlace()?.address.toString())
                         .snippet(strTime + "\n" + it.getRate() + "0 $/h"))
-                    val id = it.getPlace()!!.id
 
+                    val id = it.getPlace()!!.id
                     loadMarkersFromDB(marker, id)
+                    addTrigger = false
 //                    val query = database.getReference("spots/").orderByChild("place/id").equalTo(id)
 //                    query.addListenerForSingleValueEvent(object: ValueEventListener{
 //                        override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -211,28 +239,34 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
 
         //onClick of the info Window
         mMap.setOnInfoWindowClickListener {marker ->
-            val bundle = Bundle()
-            val spot: DataSnapshot = markerMap.get(marker)!!
+            if(marker.tag == "rented"){
+                Toast.makeText(activity, "This spot is currently occupied", Toast.LENGTH_LONG).show()
+            }
+            else{
+                val bundle = Bundle()
+                val spot: DataSnapshot = markerMap.get(marker.id)!!
 
-            val t = object : GenericTypeIndicator<ArrayList<Int>>(){}
-            val address = spot.child("place/address/").value.toString()
-            val description = spot.child("description/").value.toString()
-            val rate = spot.child("rate/").value.toString()
-            val days: ArrayList<Int> = spot.child("days/").getValue(t)!!
-            val fromTime = spot.child("timeFrom/").value.toString()
-            val toTime = spot.child("timeTo/").value.toString()
+                val t = object : GenericTypeIndicator<ArrayList<Int>>(){}
+                val address = spot.child("place/address/").value.toString()
+                val description = spot.child("description/").value.toString()
+                val rate = spot.child("rate/").value.toString()
+                val days: ArrayList<Int> = spot.child("days/").getValue(t)!!
+                val fromTime = spot.child("timeFrom/").value.toString()
+                val toTime = spot.child("timeTo/").value.toString()
+                val spotId = spot.key
 
-            bundle.putString("address", address)
-            bundle.putString("description", description)
-            bundle.putString("rate", rate)
-            bundle.putIntegerArrayList("days", days)
-            bundle.putString("fromTime", fromTime)
-            bundle.putString("toTime", toTime)
+                bundle.putString("address", address)
+                bundle.putString("description", description)
+                bundle.putString("rate", rate)
+                bundle.putIntegerArrayList("days", days)
+                bundle.putString("fromTime", fromTime)
+                bundle.putString("toTime", toTime)
+                bundle.putString("spotId", spotId)
 
-
-            val intent = Intent(activity, RentActivity::class.java)
-            intent.putExtra("bundle", bundle)
-            activity?.startActivity(intent)
+                val rentFragment: Fragment = RentFragment.newInstance(0)
+                rentFragment.arguments = bundle
+                mFragmentNavigation.pushFragment(rentFragment)
+            }
         }
     }
 
@@ -248,15 +282,8 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                             val lat: Double = newSpot.child("place/latLng/latitude/").value.toString().toDouble()
                             val lng: Double = newSpot.child("place/latLng/longitude/").value.toString().toDouble()
                             val position = LatLng(lat, lng)
-
-//                            val strTime = newSpot.child("timeFrom").value.toString() + " - " +
-//                                    newSpot.child("timeTo").value.toString()
-//                            val marker = mMap.addMarker(MarkerOptions()
-//                                .position(position)
-//                                .title(newSpot.child("place/address/").value.toString())
-//                                .snippet(strTime + "\n" + newSpot.child("rate").value.toString() + "0 $/h"))
-
-                            markerMap.put(newMarker, newSpot)
+                            markerMap.put(newMarker.id, newSpot)
+                            markerMap2.put(newSpot.key!!, newMarker)
                             Log.d(TAG, "Loading new Marker at position: $position")
                         }
                     }
@@ -274,18 +301,48 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                         var lat: Double
                         var lng: Double
                         var position: LatLng
+                        var availability: String
                         for(spot:DataSnapshot in dataSnapshot.children){
+                            var marker: Marker
+                            availability = spot.child("availability").value.toString()
+
+                            Log.d(TAG, "available: $availability")
+
                             lat = spot.child("place/latLng/latitude/").value.toString().toDouble()
                             lng = spot.child("place/latLng/longitude/").value.toString().toDouble()
                             position = LatLng(lat, lng)
                             val strTime = spot.child("timeFrom").value.toString() + " - " +
                                     spot.child("timeTo").value.toString()
-                            val marker = mMap.addMarker(MarkerOptions()
-                                .position(position)
-                                .title(spot.child("place/address").value.toString())
-                                .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+                            if(availability == "rented"){ //load with the grey marker
+                                Log.d(TAG, "in here")
 
-                            markerMap.put(marker, spot)
+                                marker = mMap.addMarker(MarkerOptions()
+                                    .position(position)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(customMarker2))
+                                    .title(spot.child("place/address").value.toString())
+                                    .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+                                marker.tag = "rented"
+                            }
+                            else{ // load with the normal marker
+                                Log.d(TAG, "no here")
+
+                                marker = mMap.addMarker(MarkerOptions()
+                                    .position(position)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(customMarker))
+                                    .title(spot.child("place/address").value.toString())
+                                    .snippet(strTime + "\n" + spot.child("rate").value.toString() + "0 $/h"))
+                            }
+
+
+                            val key = spot.key
+//                            val ref = database.getReference("spots/$key/marker_id")
+//                            ref.setValue(marker.id)
+
+                            markerMap.put(marker.id, spot)
+                            if (key != null) {
+                                markerMap2.put(key,marker)
+                            }
+                            Log.d(TAG,"MARKER ID:" + spot.key)
                             Log.d(TAG, "Loading markers at position: $position")
 
 
@@ -296,10 +353,6 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
                 }
             } )
         }
-    }
-
-    private fun convertToSpotObject(dataSnapshot: DataSnapshot){
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
@@ -322,5 +375,4 @@ class MapFragment : BaseFragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickL
             }
         }
     }
-
 }

@@ -2,12 +2,13 @@ package com.example.khoi.parkingapp.activities
 
 import android.annotation.SuppressLint
 import android.app.Dialog
-import android.arch.lifecycle.ViewModelProviders
-import android.support.v7.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
+import android.os.PersistableBundle
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -108,7 +109,7 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         return true
     }
 
-    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener {item->
+    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item->
         when (item.itemId) {
             R.id.nav_map -> {
                 fragNavController.switchTab(INDEX_MAP)
@@ -194,8 +195,15 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
 //        }
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
-        super.onSaveInstanceState(outState)
+//    override fun onSaveInstanceState(outState: Bundle?) {
+//        if (outState != null) {
+//            super.onSaveInstanceState(outState)
+//        }
+//        fragNavController.onSaveInstanceState(outState!!)
+//    }
+
+    override fun onSaveInstanceState(outState: Bundle?, outPersistentState: PersistableBundle?) {
+        super.onSaveInstanceState(outState, outPersistentState)
         fragNavController.onSaveInstanceState(outState!!)
     }
 }

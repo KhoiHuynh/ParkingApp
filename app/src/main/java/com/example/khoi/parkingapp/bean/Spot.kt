@@ -16,6 +16,8 @@ class Spot{
     private var timeTo: String? = null
     private var rate: String? = null
     private var description: String? = null
+    private var key: String? = null
+    private var availability: String? = null
 
     //getters
     fun getUid() : String? {return uid}
@@ -25,6 +27,8 @@ class Spot{
     fun getTimeTo() : String? {return timeTo}
     fun getRate() : String? {return rate}
     fun getDescription() : String? {return description}
+    fun getKey() : String? {return key}
+    fun getAvailability(): String? {return availability}
 
 
     //setters
@@ -39,6 +43,11 @@ class Spot{
     fun setTimeTo(timeTo: String?){this.timeTo = timeTo}
     fun setRate(rate: String){this.rate = rate}
     fun setDescription(description: String){this.description = description}
+    fun setKey(key: String?) {this.key = key}
+    fun setAvailability(availability: String){
+        Log.d(TAG, "availability: $availability")
+        this.availability = availability
+    }
 
 
     fun printMe(){
@@ -50,4 +59,6 @@ class Spot{
                 "\nThis is rate: $rate" +
                 "\nThis is description: $description"))
     }
+
+
 }
