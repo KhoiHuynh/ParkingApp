@@ -37,6 +37,7 @@
     <string name="app_logo">App Logo</string>
     <string name="pref_logout">logout</string>
     <string name="pref_manage">manage</string>
+    <string name="cancel">Cancel</string>
 
     <!-- Strings related to login -->
 </resources>

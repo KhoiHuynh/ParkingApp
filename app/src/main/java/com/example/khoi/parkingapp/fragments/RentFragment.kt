@@ -324,8 +324,6 @@ class RentFragment : BaseFragment(), View.OnClickListener {
             val btn = radiogrp.findViewById<RadioButton>(checkedId)
             val source = radioButtonMap.get(btn)
             val something = source?.child("fingerprint")?.value.toString()
-            Log.d(TAG, "PLEASE $something")
-
         }
 
         submit.setOnClickListener {

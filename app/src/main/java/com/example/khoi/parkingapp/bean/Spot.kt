@@ -28,6 +28,7 @@ class Spot{
     fun getRate() : String? {return rate}
     fun getDescription() : String? {return description}
     fun getKey() : String? {return key}
+    fun getAvailability() : String? { return availability}
 
 
     //setters
@@ -43,6 +44,7 @@ class Spot{
     fun setRate(rate: String){this.rate = rate}
     fun setDescription(description: String){this.description = description}
     fun setKey(key: String?) {this.key = key}
+    fun setAvailability(availability: String) { this.availability = availability}
 
 
     fun printMe(){
