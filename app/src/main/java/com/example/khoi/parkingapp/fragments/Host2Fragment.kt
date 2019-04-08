@@ -23,6 +23,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import kotlinx.android.synthetic.main.fragment_host2.*
+import com.example.khoi.parkingapp.activities.MainActivity
+
 
 class Host2Fragment : BaseFragment(){
     private var spotObj = Spot()

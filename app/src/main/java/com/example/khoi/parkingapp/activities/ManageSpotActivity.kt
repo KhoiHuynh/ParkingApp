@@ -1,5 +1,6 @@
 package com.example.khoi.parkingapp.activities
 
+import android.app.Dialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +18,8 @@ import com.baoyz.swipemenulistview.SwipeMenuCreator
 import android.graphics.Color
 import android.os.Build
 import android.view.MenuItem
+import android.view.View
+import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import java.util.*
 import kotlin.collections.HashMap
@@ -88,7 +91,7 @@ class ManageSpotActivity : AppCompatActivity() {
             // set item width
             openItem.width = 200
             // set item title
-            openItem.title = "Active"
+            openItem.title = "Manage"
             // set item title fontsize
             openItem.titleSize = 12
             // set item title font color
@@ -120,7 +123,8 @@ class ManageSpotActivity : AppCompatActivity() {
             override fun onMenuItemClick(position: Int, menu: SwipeMenu?, index: Int): Boolean {
                 when (index) {
                     0 -> { //active and inactive
-                        Toast.makeText(this@ManageSpotActivity, "Not yet implemented", Toast.LENGTH_LONG).show()
+                        openDialog(position, listView)
+
                     }
                     1 -> { //delete
                         deleteLocation(position, listView, menu, adapter)
@@ -130,6 +134,85 @@ class ManageSpotActivity : AppCompatActivity() {
                 return false
             }
         })
+    }
+
+    private fun openDialog(position: Int, listView: SwipeMenuListView) {
+        val dialog = Dialog(this)
+        var flag = false
+        dialog.setContentView(R.layout.dialog_spot_management)
+        val lp: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
+            copyFrom(dialog.window?.attributes)
+            width = WindowManager.LayoutParams.MATCH_PARENT
+            height = WindowManager.LayoutParams.WRAP_CONTENT
+        }
+
+        val switch = dialog.findViewById<View>(R.id.switch_activate_deactivate) as Switch
+        val cancelButton = dialog.findViewById<View>(R.id.button_cancel) as Button
+        val okButton = dialog.findViewById<View>(R.id.button_ok) as Button
+
+        // setup the switch positions
+        val tempMap: HashMap<String?, DataSnapshot> = listOfMaps[position]
+        val snap = tempMap.get(listSpotIds[position]) //this is a data snapshot of the spot we clicked on in the list
+        val spotId = snap?.key
+        val query = FirebaseDatabase.getInstance().getReference("spots").orderByKey().equalTo(spotId)
+
+        query.addListenerForSingleValueEvent(object:ValueEventListener{
+            override fun onDataChange(p0: DataSnapshot) {
+                if(p0.exists()) {
+                    for (spot: DataSnapshot in p0.children) {
+                        val availability = spot.child("availability").value.toString()
+                        if (availability.toLowerCase() != "disabled"){
+                            switch.isChecked = true
+                        }
+                        if(availability.toLowerCase() == "disabled"){
+                            switch.isChecked = false
+                        }
+                    }
+
+                }
+
+            }
+            override fun onCancelled(p0: DatabaseError) {
+            }
+
+        })
+
+        switch.setOnClickListener {
+            flag = true
+        }
+
+        okButton.setOnClickListener{
+            if(flag) { // the switch was changed
+                if (switch.isChecked) { // then we want to activate the spot (deactivated --> activated)
+                    val ref = FirebaseDatabase.getInstance().getReference("spots/$spotId/availability")
+                    ref.setValue("available")
+                    val markerToUpdate = markerMap2.get(spotId)
+                    markerToUpdate?.isVisible = true
+                    flag = false
+                    dialog.dismiss()
+                    Toast.makeText(this@ManageSpotActivity, "Your spot is reactivated", Toast.LENGTH_LONG).show()
+                }
+                else { //this is when the user disables a spot
+                    val ref = FirebaseDatabase.getInstance().getReference("spots/$spotId/availability")
+                    ref.setValue("disabled")
+                    val markerToUpdate = markerMap2.get(spotId)
+                    markerToUpdate?.isVisible = false
+                    flag = false
+                    dialog.dismiss()
+                    Toast.makeText(this@ManageSpotActivity, "Your spot is deactivated", Toast.LENGTH_LONG).show()
+                }
+            }
+            else{ // nothing was changed, we just dismiss the dialog
+                dialog.dismiss()
+            }
+        }
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        dialog.window?.attributes = lp
+
     }
 
     private fun deleteLocation(position: Int, listView: SwipeMenuListView, menu: SwipeMenu?, adapter: ArrayAdapter<String>){
