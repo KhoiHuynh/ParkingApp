@@ -11,9 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 
 import com.example.khoi.parkingapp.R
 import com.google.firebase.auth.FirebaseAuth
@@ -23,8 +21,6 @@ import com.stripe.android.Stripe
 import com.stripe.android.TokenCallback
 import kotlinx.android.synthetic.main.fragment_rent.*
 import java.lang.Exception
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.firebase.database.DataSnapshot
@@ -131,11 +127,6 @@ class RentFragment : BaseFragment(), View.OnClickListener {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -203,18 +194,6 @@ class RentFragment : BaseFragment(), View.OnClickListener {
             }
 
         })
-//
-//        for (row in 0..0) {
-//            val ll = RadioGroup(context)
-//
-//            for (i in 1..number) {
-//                val rdbtn = RadioButton(context)
-//                rdbtn.id = View.generateViewId()
-//                rdbtn.text = "Radio " + rdbtn.id
-//                ll.addView(rdbtn)
-//            }
-//            radiogrp.addView(ll)
-//        }
     }
 
     private fun setupUI(){
@@ -254,7 +233,7 @@ class RentFragment : BaseFragment(), View.OnClickListener {
         toggleButton_thursday.setOnClickListener(this)
         toggleButton_friday.setOnClickListener(this)
         toggleButton_saturday.setOnClickListener(this)
-        toggleButton_saturday.setOnClickListener(this)
+        toggleButton_sunday.setOnClickListener(this)
 
         //grey out and disable day buttons that aren't available
         greyOutButtons(days!!)
@@ -337,8 +316,6 @@ class RentFragment : BaseFragment(), View.OnClickListener {
             val btn = radiogrp.findViewById<RadioButton>(checkedId)
             val source = radioButtonMap.get(btn)
             val something = source?.child("fingerprint")?.value.toString()
-            Log.d(TAG, "PLEASE $something")
-
         }
 
         submit.setOnClickListener {
@@ -369,7 +346,7 @@ class RentFragment : BaseFragment(), View.OnClickListener {
         stripe.createToken(cardToSave, object : TokenCallback {
             override fun onSuccess(token: Token?) {
                 Log.v("Token!","Token Created!!"+ token!!.id)
-                Toast.makeText(activity, "Payment Method Added!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, "Payment Method Added!", Toast.LENGTH_LONG).show()
                 addCard(token.id)
             }
 
@@ -386,7 +363,7 @@ class RentFragment : BaseFragment(), View.OnClickListener {
         val database = FirebaseDatabase.getInstance()
         val amountPushId = database.getReference("stripe_customers/$currentUser/charges").push().key
         val amountRef = database.getReference("stripe_customers/$currentUser/charges/$amountPushId/amount")
-
+        Log.d(TAG, selectedDays.toString())
         if(selectedDays == arrayListOf(0,0,0,0,0,0,0)){
             Log.d(TAG, "selected days: $selectedDays")
             Toast.makeText(activity, "Please select at least one day", Toast.LENGTH_LONG).show()
@@ -402,6 +379,7 @@ class RentFragment : BaseFragment(), View.OnClickListener {
                         .setValue("rented")
                     val rentedSpot = markerMap2.get(spotId)
                     rentedSpot?.setIcon(BitmapDescriptorFactory.fromBitmap(rentedMarker))
+                    rentedSpot?.tag = "rented"
                     mFragmentNavigation.clearStack()
                 }
                 .addOnFailureListener {

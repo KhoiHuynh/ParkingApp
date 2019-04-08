@@ -91,7 +91,7 @@ class ManageSpotActivity : AppCompatActivity() {
             // set item width
             openItem.width = 200
             // set item title
-            openItem.title = "Active"
+            openItem.title = "Manage"
             // set item title fontsize
             openItem.titleSize = 12
             // set item title font color

@@ -67,11 +67,21 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
     override fun onFragmentTransaction(fragment: Fragment?, transactionType: FragNavController.TransactionType) {
         //do fragmentty stuff. Maybe change title, I'm not going to tell you how to live your life
         // If we have a backstack, show the back button
+        if(fragment is MapFragment){
+            supportActionBar?.hide()
+        }
         if(fragment is Host2Fragment){
             supportActionBar?.title = "Register"
         }
         if(fragment is AddLocationFragment){
             supportActionBar?.title = "Host"
+        }
+        if(fragment is SettingsFragment){
+            supportActionBar?.title = "Profile"
+        }
+        if(fragment is RentFragment){
+            supportActionBar?.title = "Rent"
+            supportActionBar?.show()
         }
 
         supportActionBar?.setDisplayHomeAsUpEnabled(fragNavController.isRootFragment.not())
@@ -93,8 +103,22 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
 
             supportActionBar?.show()
         }
+        if(fragment is Host2Fragment){
+            supportActionBar?.title = "Register"
+            supportActionBar?.setDisplayHomeAsUpEnabled(fragNavController.isRootFragment.not())
+            supportActionBar?.setShowHideAnimationEnabled(false)
+
+            supportActionBar?.show()
+        }
         if(fragment is SettingsFragment){
             supportActionBar?.title = "Profile"
+            supportActionBar?.setDisplayHomeAsUpEnabled(fragNavController.isRootFragment.not())
+            supportActionBar?.setShowHideAnimationEnabled(false)
+
+            supportActionBar?.show()
+        }
+        if(fragment is RentFragment){
+            supportActionBar?.title = "Rent"
             supportActionBar?.setDisplayHomeAsUpEnabled(fragNavController.isRootFragment.not())
             supportActionBar?.setShowHideAnimationEnabled(false)
 
@@ -206,4 +230,5 @@ class MainActivity : AppCompatActivity(), BaseFragment.FragmentNavigation, FragN
         super.onSaveInstanceState(outState, outPersistentState)
         fragNavController.onSaveInstanceState(outState!!)
     }
+
 }
