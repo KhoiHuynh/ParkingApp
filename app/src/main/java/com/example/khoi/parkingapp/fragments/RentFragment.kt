@@ -349,12 +349,10 @@ class RentFragment : BaseFragment(), View.OnClickListener {
                 Toast.makeText(activity, "Payment Method Added!", Toast.LENGTH_LONG).show()
                 addCard(token.id)
             }
-
             override fun onError(error: Exception?) {
                 Toast.makeText(activity, error!!.message, Toast.LENGTH_SHORT).show()
                 error.printStackTrace()
             }
-
         })
     }
 

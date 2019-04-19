@@ -9,7 +9,6 @@ import androidx.preference.*
 import com.example.khoi.parkingapp.R
 import com.example.khoi.parkingapp.activities.ManageSpotActivity
 import com.example.khoi.parkingapp.activities.RegisterActivity
-import com.example.khoi.parkingapp.activities.RentActivity
 import com.google.firebase.auth.FirebaseAuth
 
 

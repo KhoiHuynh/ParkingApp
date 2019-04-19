@@ -10,42 +10,41 @@
         android:id="@+id/toggleButton_friday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
-        android:layout_marginLeft="48dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginLeft="42dp"
         android:background="@drawable/toggle_button_state"
         android:textOff="FRI"
         android:textOn="FRI"
-        app:layout_constraintBaseline_toBaselineOf="@+id/toggleButton_saturday"
-        app:layout_constraintEnd_toEndOf="@+id/toggleButton_tuesday"
-        app:layout_constraintEnd_toStartOf="@+id/toggleButton_saturday"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@+id/toggleButton_saturday"
+        app:layout_constraintStart_toStartOf="@+id/toggleButton_monday"
+        app:layout_constraintTop_toTopOf="@+id/toggleButton_saturday" />
 
     <ToggleButton
         android:id="@+id/toggleButton_saturday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/toggle_button_state"
         android:textOff="SAT"
         android:textOn="SAT"
         app:layout_constraintEnd_toStartOf="@+id/toggleButton_sunday"
         app:layout_constraintStart_toEndOf="@+id/toggleButton_friday"
-        app:layout_constraintTop_toBottomOf="@+id/toggleButton_wednesday" />
+        app:layout_constraintTop_toBottomOf="@+id/toggleButton_tuesday" />
 
     <ToggleButton
         android:id="@+id/toggleButton_sunday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="48dp"
-        android:layout_marginRight="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:background="@drawable/toggle_button_state"
         android:textOff="SUN"
         android:textOn="SUN"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/toggleButton_saturday"
         app:layout_constraintStart_toEndOf="@+id/toggleButton_saturday"
-        app:layout_constraintTop_toBottomOf="@+id/toggleButton_thursday" />
+        app:layout_constraintTop_toTopOf="@+id/toggleButton_saturday" />
 
     <TextView
         android:id="@+id/textView5"
@@ -107,6 +106,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Which day(s) would you like to rent?"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="@+id/textView8_rate"
         app:layout_constraintTop_toBottomOf="@+id/textView8_rate" />
 
@@ -114,22 +114,24 @@
         android:id="@+id/toggleButton_monday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginLeft="24dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/toggle_button_state"
         android:textOff="MON"
         android:textOn="MON"
         app:layout_constraintEnd_toStartOf="@+id/toggleButton_tuesday"
-        app:layout_constraintStart_toStartOf="@+id/textView5"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView10" />
 
     <ToggleButton
         android:id="@+id/toggleButton_tuesday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginRight="4dp"
         android:background="@drawable/toggle_button_state"
         android:text="ToggleButton"
         android:textOff="TUE"
@@ -142,8 +144,8 @@
         android:id="@+id/toggleButton_wednesday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginRight="4dp"
         android:background="@drawable/toggle_button_state"
         android:text="ToggleButton"
         android:textOff="WED"
@@ -172,8 +174,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginLeft="24dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:text="How long will you be parking here?"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toggleButton_saturday" />
 
