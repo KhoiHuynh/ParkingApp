@@ -6,9 +6,6 @@ With the increasing amount of vehicles on the roads everyday, it gets harder and
 parking in crowded urban areas. There are millions of people across majors cities that drive
 around in circles to find parking spots. An estimated 30% of the cars in downtown traffic are cars
 cruising for parking . This is an astounding number, and it results in a lot of wasted time, money,
-
-1
-
 traffic congestion and pollution that goes into the environment from just trying to find parking.
 
 OVERVIEW
