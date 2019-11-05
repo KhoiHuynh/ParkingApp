@@ -1,14 +1,14 @@
 ParkSpace - Theres always a spot!</br>
 ![IMG](https://i.imgur.com/JeFpQgA.png)
 
-Background</br>
+**BACKGROUND**</br>
 With the increasing amount of vehicles on the roads everyday, it gets harder and harder to find
 parking in crowded urban areas. There are millions of people across majors cities that drive
 around in circles to find parking spots. An estimated 30% of the cars in downtown traffic are cars
 cruising for parking . This is an astounding number, and it results in a lot of wasted time, money,
 traffic congestion and pollution that goes into the environment from just trying to find parking.
 
-OVERVIEW</br>
+**OVERVIEW**</br>
 My aim is to create a mobile application for the android platform that can help solve the issues
 mentioned above. The goal is to create an application that links drivers with private parking spot
 owners in the hopes of providing affordable and reliable parking in urban areas. Spot owners can
